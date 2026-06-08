@@ -73,7 +73,7 @@
 </head>
 <body>
 <h1>Programação da Onduladeira</h1>
-<div class="sub">Sistema de teste · JP Embalagens / MTX · <span id="status" style="color:var(--txt2)">Conectando…</span></div>
+<div class="sub">Sistema de teste · JP Embalagens / MTX · <span id="status" style="color:var(--txt2)">Conectando…</span> · <b style="color:var(--azul)">build 3</b></div>
 <div class="print-only" id="printInfo"></div>
 
 <div class="tabs">
@@ -169,9 +169,9 @@ var SB_H={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'appli
 async function api(path,opts){
   opts=opts||{}; opts.headers=Object.assign({},SB_H,opts.headers||{});
   var r=await fetch(SB_URL+path,opts);
-  if(!r.ok){ throw new Error(r.status+' '+(await r.text())); }
-  if(r.status===204) return null;
-  return r.json();
+  var txt=await r.text();
+  if(!r.ok){ throw new Error(r.status+' '+txt); }
+  return txt ? JSON.parse(txt) : null;
 }
 function setStatus(txt,kind){ var e=S('status'); if(!e)return; e.textContent=txt;
   e.style.color = kind==='ok'?'var(--ok)' : kind==='err'?'var(--erro)' : 'var(--txt2)'; }
