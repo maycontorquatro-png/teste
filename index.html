@@ -3,428 +3,417 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Estoque Onduladeira · TESTE</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<title>Programação da Onduladeira · JP</title>
 <style>
-  :root{
-    --kraft:#c98a4b;
-    --kraft-dark:#8a5a2b;
-    --kraft-deep:#5e3d1c;
-    --paper:#f3ebdd;
-    --paper-2:#ece0cc;
-    --card:#fffdf8;
-    --ink:#3a2c1c;
-    --ink-soft:#7a6a55;
-    --line:#e3d6c0;
-    --green:#3f8a4f;
-    --green-bg:#e6f1e6;
-    --red:#b5452f;
-    --red-bg:#f7e6e1;
-    --shadow:0 2px 4px rgba(94,61,28,.08), 0 8px 24px rgba(94,61,28,.10);
+  :root{ --azul:#009FE3; --bg:#0f1419; --card:#1a2129; --card2:#232c36; --linha:#2e3a45;
+    --txt:#e6edf3; --txt2:#9aa7b2; --ok:#3fb950; --warn:#d29922; --erro:#f85149; }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{ font-family:-apple-system,'Segoe UI',Roboto,sans-serif; background:var(--bg); color:var(--txt); padding:14px; line-height:1.4; max-width:860px; margin:0 auto; }
+  h1{ font-size:18px; color:var(--azul); margin-bottom:2px; }
+  .sub{ font-size:12px; color:var(--txt2); margin-bottom:14px; }
+  .tabs{ display:flex; gap:6px; margin-bottom:14px; }
+  .tab{ font-family:inherit; font-size:13px; font-weight:600; padding:9px 16px; border-radius:8px 8px 0 0; border:1px solid var(--linha); border-bottom:none; background:var(--card2); color:var(--txt2); cursor:pointer; }
+  .tab.active{ background:var(--card); color:var(--azul); border-color:var(--azul); }
+  .pane{ display:none; } .pane.active{ display:block; }
+  .set{ display:flex; gap:14px; flex-wrap:wrap; background:var(--card2); border-radius:8px; padding:9px 12px; margin-bottom:12px; align-items:center; }
+  .set label{ font-size:11px; color:var(--txt2); display:flex; align-items:center; gap:6px; }
+  .set input{ width:70px; font-family:inherit; font-size:13px; padding:4px 7px; border-radius:6px; border:1px solid var(--linha); background:var(--bg); color:var(--txt); font-weight:600; }
+  .metrics{ display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:8px; margin-bottom:14px; }
+  .metric{ background:var(--card2); border-radius:8px; padding:9px 11px; }
+  .metric .lbl{ font-size:11px; color:var(--txt2); }
+  .metric .val{ font-size:21px; font-weight:600; }
+  .btns{ display:flex; gap:7px; margin-bottom:12px; flex-wrap:wrap; }
+  button{ font-family:inherit; font-size:13px; padding:7px 13px; border-radius:7px; border:1px solid var(--linha); background:var(--card2); color:var(--txt); cursor:pointer; }
+  button:active{ transform:scale(0.97); }
+  button.prim{ background:var(--azul); border-color:var(--azul); color:#fff; }
+  .grp{ margin-bottom:14px; }
+  .grp-head{ display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600; color:var(--azul); padding:6px 0; border-bottom:1px solid var(--linha); margin-bottom:8px; }
+  .grp-head .st{ margin-left:auto; font-size:12px; color:var(--txt2); font-weight:400; }
+  .card{ background:var(--card); border:1px solid var(--linha); border-radius:9px; padding:11px 13px; margin-bottom:8px; cursor:pointer; }
+  .card .top{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .tag{ font-size:11px; padding:2px 8px; border-radius:10px; border:1px solid var(--linha); color:var(--txt2); }
+  .tag.caixa{ background:rgba(0,159,227,0.15); color:var(--azul); border-color:transparent; }
+  .pill{ font-size:11px; padding:2px 8px; border-radius:10px; border:1px solid currentColor; }
+  .b-blue{ color:#58a6ff; } .b-teal{ color:#39c5cf; } .b-amber{ color:#d29922; }
+  .info{ display:flex; gap:13px; margin-top:6px; font-size:12px; color:var(--txt2); flex-wrap:wrap; align-items:center; }
+  .perda{ font-weight:600; }
+  .del{ background:none; border:none; color:var(--erro); font-size:16px; font-weight:700; cursor:pointer; padding:0 4px; }
+  .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px; }
+  @media(max-width:560px){ .grid2{ grid-template-columns:1fr; } }
+  .panel{ background:var(--card); border:1px solid var(--linha); border-radius:9px; padding:11px 13px; }
+  .panel h3{ font-size:14px; margin-bottom:9px; }
+  table{ width:100%; border-collapse:collapse; font-size:13px; }
+  th{ font-size:11px; color:var(--txt2); text-transform:uppercase; text-align:right; padding:4px 0; border-bottom:1px solid var(--linha); }
+  th:first-child{ text-align:left; }
+  td{ padding:5px 0; border-bottom:1px solid var(--linha); text-align:right; }
+  td:first-child{ text-align:left; }
+  .warnbox{ color:var(--warn); margin-top:10px; font-size:12px; }
+  .form{ background:var(--card2); border-radius:9px; padding:13px; margin-bottom:12px; }
+  .form .row{ display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-bottom:9px; }
+  .form label{ font-size:11px; color:var(--txt2); display:block; margin-bottom:2px; }
+  .form input,.form select{ width:100%; font-family:inherit; font-size:13px; padding:6px 8px; border-radius:6px; border:1px solid var(--linha); background:var(--bg); color:var(--txt); }
+  .empty{ color:var(--txt2); font-size:13px; text-align:center; padding:14px 0; }
+  .det{ margin-top:10px; }
+  .gram-tag{ font-size:11px; font-weight:600; color:var(--azul); }
+  .print-only{ display:none; }
+  @media print{
+    .tabs,.set,.form,.btns,#pane-cad,#detalhe,.del,datalist{ display:none !important; }
+    body{ background:#fff; color:#000; max-width:100%; padding:0; }
+    h1{ color:#000; } .sub{ color:#444; }
+    .print-only{ display:block; font-size:13px; color:#000; font-weight:600; margin-bottom:10px; }
+    .metric{ background:#f2f2f2; border:1px solid #ccc; }
+    .metric .lbl,.metric .val{ color:#000; }
+    .grp-head{ color:#000; border-color:#999; } .grp-head .st{ color:#333; }
+    .card,.panel{ background:#fff; border:1px solid #aaa; break-inside:avoid; }
+    .card .top span,.info span,td,th,.panel h3,#resumo,.vincos-line,.vincos-line b{ color:#000 !important; }
+    .pill,.tag{ color:#000 !important; border-color:#999 !important; background:#fff !important; }
+    #pane-prog{ display:block !important; }
   }
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{
-    font-family:'Archivo',sans-serif;
-    background:
-      repeating-linear-gradient(90deg, rgba(201,138,75,.04) 0 2px, transparent 2px 9px),
-      var(--paper);
-    color:var(--ink);
-    min-height:100vh;
-    padding:0 0 60px;
-    -webkit-font-smoothing:antialiased;
-  }
-  .wrap{max-width:680px;margin:0 auto;padding:0 16px}
-
-  /* ---------- header ---------- */
-  header{
-    background:linear-gradient(135deg,var(--kraft-dark),var(--kraft-deep));
-    color:#fff;padding:22px 0 20px;margin-bottom:18px;
-    box-shadow:var(--shadow);position:relative;overflow:hidden;
-  }
-  header::after{
-    content:"";position:absolute;left:0;right:0;bottom:0;height:8px;
-    background:repeating-linear-gradient(90deg,var(--kraft) 0 14px,var(--kraft-deep) 14px 28px);
-    opacity:.5;
-  }
-  .h-row{display:flex;align-items:center;gap:12px}
-  .logo{
-    width:46px;height:46px;border-radius:12px;flex:0 0 auto;
-    background:var(--kraft);display:grid;place-items:center;font-size:24px;
-    box-shadow:inset 0 -3px 0 rgba(0,0,0,.18);
-  }
-  header h1{font-size:21px;font-weight:800;letter-spacing:.3px;line-height:1.05}
-  header .sub{font-size:12.5px;font-weight:500;opacity:.8;margin-top:2px}
-  .badge-teste{
-    display:inline-block;background:#f0c14b;color:#5e3d1c;font-weight:800;
-    font-size:10.5px;letter-spacing:1px;padding:3px 8px;border-radius:6px;margin-left:8px;
-    vertical-align:middle;
-  }
-
-  /* ---------- connection status ---------- */
-  .status{
-    display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;
-    background:var(--card);border:1px solid var(--line);border-radius:12px;
-    padding:10px 14px;margin-bottom:18px;box-shadow:var(--shadow);
-  }
-  .dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto;background:#c9a86b;animation:pulse 1.2s infinite}
-  .dot.ok{background:var(--green);animation:none}
-  .dot.err{background:var(--red);animation:none}
-  @keyframes pulse{0%,100%{opacity:.35}50%{opacity:1}}
-
-  /* ---------- cards / sections ---------- */
-  section{
-    background:var(--card);border:1px solid var(--line);border-radius:16px;
-    padding:18px;margin-bottom:18px;box-shadow:var(--shadow);
-  }
-  .sec-title{
-    display:flex;align-items:center;gap:9px;font-size:16px;font-weight:800;
-    color:var(--kraft-deep);margin-bottom:14px;
-  }
-  .sec-title .ic{font-size:19px}
-  .count-pill{
-    margin-left:auto;background:var(--paper-2);color:var(--ink-soft);
-    font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;
-  }
-
-  /* ---------- stock list grouped by owner ---------- */
-  .owner-group{margin-bottom:16px}
-  .owner-group:last-child{margin-bottom:0}
-  .owner-head{
-    display:flex;align-items:baseline;gap:8px;
-    padding-bottom:6px;margin-bottom:8px;border-bottom:2px solid var(--line);
-  }
-  .owner-name{font-weight:800;font-size:15px;color:var(--ink)}
-  .tag{
-    font-size:10px;font-weight:800;letter-spacing:.5px;padding:2px 7px;border-radius:6px;text-transform:uppercase;
-  }
-  .tag.propria{background:var(--green-bg);color:var(--green)}
-  .tag.terceiro{background:#efe3cf;color:var(--kraft-dark)}
-  .owner-total{margin-left:auto;font-size:12.5px;font-weight:700;color:var(--ink-soft)}
-
-  .stock-row{
-    display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line);
-  }
-  .stock-row:last-child{border-bottom:none}
-  .paper-ic{
-    width:34px;height:34px;border-radius:9px;flex:0 0 auto;display:grid;place-items:center;font-size:16px;
-    background:var(--paper-2);
-  }
-  .paper-ic.capa{background:#e8d3b3}
-  .paper-ic.miolo{background:#dce8d3}
-  .paper-info{flex:1;min-width:0}
-  .paper-name{font-weight:700;font-size:14px}
-  .paper-meta{font-size:11.5px;color:var(--ink-soft);margin-top:1px}
-  .kg{font-weight:800;font-size:15px;color:var(--kraft-deep);white-space:nowrap}
-  .kg small{font-size:11px;font-weight:600;color:var(--ink-soft)}
-
-  .empty{color:var(--ink-soft);font-size:13.5px;text-align:center;padding:14px 0}
-
-  /* ---------- forms ---------- */
-  .field{margin-bottom:12px}
-  label{display:block;font-size:12.5px;font-weight:700;color:var(--ink-soft);margin-bottom:5px;letter-spacing:.2px}
-  input,select{
-    width:100%;font-family:inherit;font-size:15px;color:var(--ink);
-    background:var(--paper);border:1.5px solid var(--line);border-radius:11px;
-    padding:11px 12px;outline:none;transition:border-color .15s,background .15s;
-  }
-  input:focus,select:focus{border-color:var(--kraft);background:#fff}
-  .row2{display:flex;gap:10px}
-  .row2 .field{flex:1}
-  button.save{
-    width:100%;font-family:inherit;font-size:15px;font-weight:800;letter-spacing:.3px;
-    color:#fff;background:linear-gradient(135deg,var(--kraft),var(--kraft-dark));
-    border:none;border-radius:12px;padding:13px;cursor:pointer;margin-top:4px;
-    box-shadow:0 3px 0 var(--kraft-deep);transition:transform .08s,box-shadow .08s;
-  }
-  button.save:active{transform:translateY(2px);box-shadow:0 1px 0 var(--kraft-deep)}
-  button.save:disabled{opacity:.55;cursor:not-allowed}
-
-  .msg{margin-top:10px;font-size:13px;font-weight:600;border-radius:10px;padding:9px 12px;display:none}
-  .msg.ok{display:block;background:var(--green-bg);color:var(--green)}
-  .msg.err{display:block;background:var(--red-bg);color:var(--red)}
-
-  .hint{font-size:11.5px;color:var(--ink-soft);margin-top:10px;line-height:1.5}
-  .footer-note{text-align:center;font-size:11px;color:var(--ink-soft);margin-top:6px;line-height:1.6}
 </style>
 </head>
 <body>
+<h1>Programação da Onduladeira</h1>
+<div class="sub">Sistema de teste · JP Embalagens / MTX · <span id="status" style="color:var(--txt2)">Conectando…</span></div>
+<div class="print-only" id="printInfo"></div>
 
-<header>
-  <div class="wrap h-row">
-    <div class="logo">📦</div>
-    <div>
-      <h1>Estoque Onduladeira <span class="badge-teste">TESTE</span></h1>
-      <div class="sub">Módulo experimental · Supabase · JP Embalagens</div>
-    </div>
-  </div>
-</header>
+<div class="tabs">
+  <button class="tab active" id="tab-p" onclick="showTab('prog')">Programação manual</button>
+  <button class="tab" id="tab-c" onclick="showTab('cad')">Cadastro de chapa</button>
+</div>
 
-<div class="wrap">
-
-  <div class="status">
-    <span class="dot" id="dot"></span>
-    <span id="statusText">Conectando no banco…</span>
-  </div>
-
-  <!-- ESTOQUE ATUAL -->
-  <section>
-    <div class="sec-title">
-      <span class="ic">📋</span> Estoque atual
-      <span class="count-pill" id="estCount">—</span>
-    </div>
-    <div id="estoqueList"><div class="empty">Carregando…</div></div>
-  </section>
-
-  <!-- NOVO ESTOQUE -->
-  <section>
-    <div class="sec-title"><span class="ic">➕</span> Novo estoque</div>
-    <div class="field">
-      <label>Dono do papel</label>
-      <select id="estDono"><option value="">Carregando…</option></select>
-    </div>
-    <div class="field">
-      <label>Papel</label>
-      <select id="estPapel"><option value="">Carregando…</option></select>
-    </div>
-    <div class="field">
-      <label>Quantidade (kg)</label>
-      <input id="estKg" type="number" inputmode="decimal" placeholder="ex: 5000" step="any" min="0">
-    </div>
-    <button class="save" id="btnEstoque" onclick="salvarEstoque()">Salvar estoque</button>
-    <div class="msg" id="msgEstoque"></div>
-    <div class="hint">💡 O dono e o papel saem direto das outras tabelas — é o "relacional" funcionando: você escolhe pelo nome, mas por baixo vai gravado o número (id).</div>
-  </section>
-
-  <!-- NOVO PAPEL -->
-  <section>
-    <div class="sec-title"><span class="ic">📄</span> Novo papel</div>
-    <div class="field">
-      <label>Nome / apelido</label>
-      <input id="papNome" type="text" placeholder="ex: Capa 200">
-    </div>
-    <div class="row2">
-      <div class="field">
-        <label>Gramatura</label>
-        <input id="papGram" type="number" inputmode="numeric" placeholder="ex: 200" step="1" min="0">
-      </div>
-      <div class="field">
-        <label>Função</label>
-        <select id="papFuncao">
-          <option value="capa">capa</option>
-          <option value="miolo">miolo</option>
-        </select>
-      </div>
-    </div>
-    <button class="save" id="btnPapel" onclick="salvarPapel()">Salvar papel</button>
-    <div class="msg" id="msgPapel"></div>
-    <div class="hint">📄 Depois de salvar um papel novo, ele aparece automaticamente na lista de papéis do "Novo estoque" acima.</div>
-  </section>
-
-  <div class="footer-note">
-    🔒 Ambiente de teste isolado · banco <b>jp-estoque-teste</b><br>
-    Separado do sistema real (que continua no Firebase).
+<!-- ============ PROGRAMAÇÃO ============ -->
+<div class="pane active" id="pane-prog">
+  <div class="set">
+    <label>Velocidade (m/min) <input id="sVel" type="number" value="80"></label>
+    <label>Fator onda <input id="sFator" type="number" step="0.01" value="1.35"></label>
+    <label>Cola (g) <input id="sCola" type="number" value="15"></label>
   </div>
 
+  <div class="metrics">
+    <div class="metric"><div class="lbl">Chapas programadas</div><div class="val" id="m-chapas">0</div></div>
+    <div class="metric"><div class="lbl">Metros totais</div><div class="val" id="m-metros">0</div></div>
+    <div class="metric"><div class="lbl">Papel total (kg)</div><div class="val" id="m-papel">0</div></div>
+    <div class="metric"><div class="lbl">Tempo total</div><div class="val" id="m-tempo">0</div></div>
+    <div class="metric"><div class="lbl">Erros de cálculo</div><div class="val" id="m-erros" style="color:var(--ok)">0</div></div>
+  </div>
+
+  <div class="form">
+    <div style="font-weight:600;margin-bottom:9px;">➕ Adicionar à programação</div>
+    <div class="row">
+      <div><label>Chapa cadastrada</label><select id="p-chapa"></select></div>
+      <div><label>Quantidade de folhas</label><input id="p-folhas" type="number" placeholder="ex: 10000"></div>
+    </div>
+    <div class="row">
+      <div><label>Bobina que vai usar (mm)</label><input id="p-bobina" type="number" list="bobinas" value="1400"></div>
+      <div style="display:flex;align-items:flex-end;"><button class="prim" style="width:100%" onclick="addJob()">Adicionar na fila</button></div>
+    </div>
+    <datalist id="bobinas"><option value="800"><option value="1000"><option value="1200"><option value="1400"></datalist>
+    <div style="font-size:11px;color:var(--txt2);">Bobinas comuns: 800 · 1000 · 1200 · 1400 mm. A fila fica agrupada por bobina pra facilitar o ajuste da máquina.</div>
+  </div>
+
+  <div class="btns">
+    <button class="prim" id="btn-import">📥 Importar caixas (cartonagem)</button>
+    <button id="btn-print">🖨️ Imprimir programação</button>
+    <button id="btn-exemplos">🌱 Carregar exemplos</button>
+    <button id="btn-limpar">🗑️ Limpar tudo</button>
+  </div>
+  <div style="font-size:12px;color:var(--txt2);margin-bottom:10px;">ⓘ Clique numa chapa pra ver vincos e cálculo. A <b>% de perda</b> mostra o papel desperdiçado quando a bobina não fecha certo na largura.</div>
+
+  <div id="fila"></div>
+  <div id="detalhe" class="det"></div>
+
+  <div class="grid2">
+    <div class="panel"><h3>Estoque de papel (exemplo)</h3><div id="estoque"></div></div>
+    <div class="panel"><h3>Resumo de produção</h3><div id="resumo" style="font-size:13px;color:var(--txt2);"></div></div>
+  </div>
+</div>
+
+<!-- ============ CADASTRO ============ -->
+<div class="pane" id="pane-cad">
+  <div class="form">
+    <div style="font-weight:600;margin-bottom:9px;">📐 Cadastrar chapa</div>
+    <div class="row">
+      <div><label>Cliente</label><input id="c-cli" type="text" placeholder="ex: KININO"></div>
+      <div><label>Código / qualidade</label><input id="c-cod" type="text" placeholder="ex: B190M100M100-E"></div>
+    </div>
+    <div class="row">
+      <div><label>Tipo</label><select id="c-tipo"><option value="caixa">Caixa (cartonagem JP)</option><option value="chapa">Chapa (cliente)</option></select></div>
+      <div><label>Onda</label><select id="c-onda" onchange="renderComposicao()"><option value="B">B · simples</option><option value="C">C · simples</option><option value="E">E · simples</option><option value="BB">BB · dupla (5,8mm)</option><option value="BC">BC · dupla</option><option value="EB">EB · dupla</option></select></div>
+    </div>
+    <div class="row">
+      <div><label>Largura (mm)</label><input id="c-larg" type="number" placeholder="400"></div>
+      <div><label>Comprimento (mm)</label><input id="c-comp" type="number" placeholder="1000"></div>
+    </div>
+    <div id="composicao"></div>
+    <div id="gramPreview" style="font-size:13px;margin:2px 0 10px;">Gramatura total da chapa: <b class="gram-tag" id="gramVal">0 g/m²</b> <span style="color:var(--txt2);font-size:11px;">(capa = gramatura · onda = ×fator + cola)</span></div>
+    <div class="row">
+      <div style="grid-column:1/3;"><label>Vincos (riscador) — só para caixa</label><input id="c-vincos" type="text" placeholder="130 X 205 X 130"></div>
+    </div>
+    <button class="prim" onclick="addChapa()">Salvar chapa</button>
+    <div style="font-size:11px;color:var(--txt2);margin-top:8px;">📦 Quando for caixa, no futuro os vincos virão automáticos do cadastro de caixa do sistema real.</div>
+  </div>
+  <div class="panel"><h3>Chapas cadastradas</h3><div id="cadList"></div></div>
 </div>
 
 <script>
-  // ===== CONEXÃO COM O SUPABASE =====
-  const SUPABASE_URL = 'https://ajewezrzxkunsieqvksv.supabase.co';
-  const SUPABASE_KEY = 'sb_publishable_EhoKnJsDHMLLVyxt_NHpAg_Mi3ZvcnE';
-  const REST = SUPABASE_URL + '/rest/v1';
-  const HEADERS = {
-    'apikey': SUPABASE_KEY,
-    'Authorization': 'Bearer ' + SUPABASE_KEY,
-    'Content-Type': 'application/json'
-  };
+function S(id){return document.getElementById(id);}
+function val(id){var v=parseFloat(S(id).value);return isNaN(v)?0:v;}
+function fmt(n){return Math.round(n).toLocaleString('pt-BR');}
+function fmtTempo(min){ if(!isFinite(min)||min<=0) return '0'; if(min<60) return fmt(min)+' min';
+  var h=Math.floor(min/60),m=Math.round(min%60); return h+'h'+(m<10?'0':'')+m; }
 
-  // guarda os dados das 3 tabelas em memória
-  let donos = [], papeis = [], estoques = [];
-
-  // ===== util =====
-  function setStatus(state, text){
-    const dot = document.getElementById('dot');
-    dot.className = 'dot' + (state ? ' ' + state : '');
-    document.getElementById('statusText').textContent = text;
-  }
-  function showMsg(id, type, text){
-    const el = document.getElementById(id);
-    el.className = 'msg ' + type;
-    el.textContent = text;
-    if(type === 'ok'){ setTimeout(()=>{ el.className='msg'; }, 4000); }
-  }
-  function fmtKg(n){
-    return Number(n).toLocaleString('pt-BR');
-  }
-
-  // ===== carregar tudo =====
-  async function carregarTudo(){
-    setStatus('', 'Conectando no banco…');
-    try{
-      const [rd, rp, re] = await Promise.all([
-        fetch(REST + '/clientes_donos?select=*&order=id.asc', {headers:HEADERS}),
-        fetch(REST + '/papeis?select=*&order=id.asc', {headers:HEADERS}),
-        fetch(REST + '/estoques?select=*&order=id.asc', {headers:HEADERS})
-      ]);
-      if(!rd.ok || !rp.ok || !re.ok){
-        throw new Error('HTTP ' + rd.status + '/' + rp.status + '/' + re.status);
-      }
-      donos = await rd.json();
-      papeis = await rp.json();
-      estoques = await re.json();
-
-      setStatus('ok', 'Conectado ✓  ·  ' + donos.length + ' donos · ' + papeis.length + ' papéis · ' + estoques.length + ' estoques');
-      renderEstoque();
-      preencherSelects();
-    }catch(err){
-      console.error(err);
-      setStatus('err', 'Erro ao conectar: ' + err.message);
-      document.getElementById('estoqueList').innerHTML =
-        '<div class="empty">Não consegui carregar.<br>Confere a chave/endereço, ou abra esta página direto no navegador (não no preview).</div>';
+// ===== Supabase (projeto de teste isolado) =====
+var SB_URL='https://ajewezrzxkunsieqvksv.supabase.co/rest/v1';
+var SB_KEY='sb_publishable_EhoKnJsDHMLLVyxt_NHpAg_Mi3ZvcnE';
+var SB_H={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'};
+async function api(path,opts){
+  opts=opts||{}; opts.headers=Object.assign({},SB_H,opts.headers||{});
+  var r=await fetch(SB_URL+path,opts);
+  if(!r.ok){ throw new Error(r.status+' '+(await r.text())); }
+  if(r.status===204) return null;
+  return r.json();
+}
+function setStatus(txt,kind){ var e=S('status'); if(!e)return; e.textContent=txt;
+  e.style.color = kind==='ok'?'var(--ok)' : kind==='err'?'var(--erro)' : 'var(--txt2)'; }
+async function carregar(){
+  try{
+    setStatus('Conectando…','load');
+    var res=await Promise.all([ api('/chapas?select=*&order=id'), api('/programacao?select=*&order=id') ]);
+    chapas=res[0].map(function(r){return {id:r.id,cliente:r.cliente,cod:r.cod,tipo:r.tipo,onda:r.onda,larg:Number(r.larg),comp:Number(r.comp),vincos:r.vincos,cam:(r.cam||[]).map(function(x){return {t:x.t,papel:x.papel,g:Number(x.g)};})};});
+    prog=res[1].map(function(r){return {id:r.id,chapaId:r.chapa_id,folhas:Number(r.folhas),bobina:Number(r.bobina)};});
+    setStatus('Conectado ✓ — salvando no banco','ok');
+    renderCadastro(); renderFila();
+  }catch(e){ setStatus('Erro de conexão: '+e.message,'err'); console.error(e); }
+}
+function chapasExemplo(){return [
+  {body:{cliente:'DCX',cod:'B190M100M100-E',tipo:'chapa',onda:'E',larg:350,comp:688,vincos:null,cam:[{t:'C',papel:'Capa Fosco 190',g:190},{t:'O',papel:'Miolo MM1 100',g:100},{t:'C',papel:'Capa CM1 100',g:100}]},job:{folhas:10000,bobina:800}},
+  {body:{cliente:'Nogueira',cod:'C90M110M90-B',tipo:'chapa',onda:'B',larg:306,comp:820,vincos:null,cam:[{t:'C',papel:'Capa CM1 90',g:90},{t:'O',papel:'Miolo MM2 110',g:110},{t:'C',papel:'Capa CM1 90',g:90}]},job:{folhas:8000,bobina:1200}},
+  {body:{cliente:'PACK E CIA',cod:'C90M100M100-E',tipo:'chapa',onda:'E',larg:450,comp:910,vincos:null,cam:[{t:'C',papel:'Capa CM1 90',g:90},{t:'O',papel:'Miolo MM1 100',g:100},{t:'C',papel:'Capa CM1 100',g:100}]},job:{folhas:5000,bobina:1200}},
+  {body:{cliente:'KININO',cod:'CX 03',tipo:'caixa',onda:'B',larg:425,comp:1185,vincos:'143 X 139 X 143',cam:[{t:'C',papel:'Capa CM1 100',g:100},{t:'O',papel:'Miolo MM2 110',g:110},{t:'C',papel:'Capa CM1 100',g:100}]},job:{folhas:10000,bobina:1400}},
+  {body:{cliente:'KININO',cod:'CX 01',tipo:'caixa',onda:'B',larg:306,comp:820,vincos:'87 X 133 X 87',cam:[{t:'C',papel:'Capa CM1 100',g:100},{t:'O',papel:'Miolo MM2 110',g:110},{t:'C',papel:'Capa CM1 100',g:100}]},job:{folhas:25000,bobina:1400}},
+  {body:{cliente:'KININO',cod:'M110x5-BB',tipo:'caixa',onda:'BB',larg:400,comp:1000,vincos:'130 X 205 X 130',cam:[{t:'C',papel:'Capa CM1 110',g:110},{t:'O',papel:'Miolo MM2 110',g:110},{t:'C',papel:'Miolo 110',g:110},{t:'O',papel:'Miolo MM2 110',g:110},{t:'C',papel:'Capa CM1 110',g:110}]},job:null}
+];}
+async function carregarExemplos(){
+  if(!confirm('Isso grava as chapas de exemplo no banco. Continuar?'))return;
+  try{ var ex=chapasExemplo();
+    for(var i=0;i<ex.length;i++){
+      var row=await api('/chapas',{method:'POST',headers:{'Prefer':'return=representation'},body:JSON.stringify(ex[i].body)});
+      if(ex[i].job){ await api('/programacao',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify({chapa_id:row[0].id,folhas:ex[i].job.folhas,bobina:ex[i].job.bobina})}); }
     }
-  }
+    await carregar();
+  }catch(e){ alert('Erro: '+e.message); }
+}
+async function limparTudo(){
+  if(!confirm('Apagar TODAS as chapas e a programação do banco? (só dados de teste)'))return;
+  try{ await api('/programacao?id=gt.0',{method:'DELETE'}); await api('/chapas?id=gt.0',{method:'DELETE'}); await carregar(); }
+  catch(e){ alert('Erro: '+e.message); }
+}
+function estoqueIni(){return {
+  'Capa Fosco 190':2500, 'Capa CM1 100':1500, 'Capa CM1 90':2000,
+  'Miolo MM1 100':3000, 'Miolo MM2 110':1200
+};}
+var chapas=[], prog=[], estoque=estoqueIni();
+var PERDA_ALERTA=8;
 
-  // ===== montar mapas (id -> objeto) =====
-  function mapaPor(lista){
-    const m = {};
-    lista.forEach(it => { m[it.id] = it; });
-    return m;
-  }
+function showTab(t){
+  S('pane-prog').classList.toggle('active',t==='prog');
+  S('pane-cad').classList.toggle('active',t==='cad');
+  S('tab-p').classList.toggle('active',t==='prog');
+  S('tab-c').classList.toggle('active',t==='cad');
+}
+function settings(){return {vel:val('sVel'),fator:val('sFator'),cola:val('sCola')};}
+function chapaById(id){return chapas.find(c=>c.id===id);}
+function gram(c){var s=settings(),total=0,nO=0;c.cam.forEach(function(x){if(x.t==='O'){total+=x.g*s.fator;nO++;}else{total+=x.g;}});return total+s.cola*nO;}
+function pesoCamada(c,cam,folhas){var s=settings();var f=cam.t==='O'?s.fator:1;return c.larg*c.comp*cam.g*f/100/1000/10000*folhas;}
+function pesoTotal(c,folhas){var t=0;c.cam.forEach(x=>{t+=pesoCamada(c,x,folhas);});return t;}
+function calcJob(j){
+  var c=chapaById(j.chapaId), s=settings();
+  if(!c) return null;
+  var cortes=c.larg>0?Math.floor(j.bobina/c.larg):0;
+  var metros=cortes>0?j.folhas*c.comp/cortes/1000:0;
+  var usado=cortes*c.larg;
+  var perda=j.bobina>0?(1-usado/j.bobina)*100:0;
+  var tempo=s.vel>0?metros/s.vel:0;
+  var kg=pesoTotal(c,j.folhas);
+  var erro=(c.larg<=0||c.comp<=0||j.folhas<=0||cortes<=0)?1:0;
+  return {c,cortes,metros,perda,tempo,kg,erro};
+}
 
-  // ===== render do estoque agrupado por dono =====
-  function renderEstoque(){
-    const mapaDono = mapaPor(donos);
-    const mapaPapel = mapaPor(papeis);
-    const cont = document.getElementById('estoqueList');
-    document.getElementById('estCount').textContent = estoques.length + ' itens';
-
-    if(estoques.length === 0){
-      cont.innerHTML = '<div class="empty">Nenhum estoque cadastrado ainda.</div>';
-      return;
-    }
-
-    // agrupa por dono_id
-    const grupos = {};
-    estoques.forEach(e => {
-      (grupos[e.dono_id] = grupos[e.dono_id] || []).push(e);
+function renderFila(){
+  var fila=S('fila');
+  if(prog.length===0){ fila.innerHTML='<div class="empty">Fila vazia. Adicione chapas acima.</div>'; }
+  else{
+    var grupos={};
+    prog.forEach(function(j){ (grupos[j.bobina]=grupos[j.bobina]||[]).push(j); });
+    var bobinas=Object.keys(grupos).map(Number).sort((a,b)=>a-b);
+    var html='';
+    bobinas.forEach(function(bw){
+      var jobs=grupos[bw].slice().sort(function(a,b){var ca=chapaById(a.chapaId),cb=chapaById(b.chapaId); if(ca.onda!==cb.onda)return ca.onda<cb.onda?-1:1; return ca.larg-cb.larg;});
+      var gMetros=0,gTempo=0;
+      var cards='';
+      jobs.forEach(function(j){
+        var r=calcJob(j); if(!r)return; gMetros+=r.metros; gTempo+=r.tempo;
+        var c=r.c; var tag=c.tipo==='caixa'?'<span class="tag caixa">caixa</span>':'<span class="tag">chapa</span>';
+        var cls=c.onda==='E'?'b-teal':(c.onda.indexOf('B')===0?'b-blue':'b-amber');
+        var pcor=r.perda>PERDA_ALERTA?'var(--erro)':(r.perda>2?'var(--warn)':'var(--ok)');
+        var vincosLine=(c.tipo==='caixa'&&c.vincos)?'<div class="vincos-line" style="margin-top:5px;font-size:12px;color:var(--azul)">📐 Vincos (riscador): <b>'+c.vincos+'</b></div>':'';
+        cards+='<div class="card" onclick="detalhe('+j.id+')"><div class="top">'+
+          '<span style="font-weight:600;">#'+j.id+'</span><span class="pill '+cls+'">'+c.cliente+'</span>'+
+          '<span style="font-size:13px;color:var(--txt2)">'+c.cod+'</span>'+tag+'<span class="pill '+cls+'">Onda '+c.onda+'</span>'+
+          '<span style="margin-left:auto;font-size:13px;font-weight:600;">'+fmt(gram(c))+' g/m²</span></div>'+
+          '<div class="info"><span>'+c.larg+'×'+c.comp+'</span><span>'+fmt(j.folhas)+' folhas</span>'+
+          '<span>'+r.cortes+' cortes</span><span class="perda" style="color:'+pcor+'">perda '+r.perda.toFixed(1)+'%</span>'+
+          '<span>'+fmt(r.metros)+' m</span><span style="color:var(--txt)">'+fmt(r.kg)+' kg</span>'+
+          '<button class="del" onclick="event.stopPropagation();removeJob('+j.id+')">×</button></div>'+
+          vincosLine+'</div>';
+      });
+      html+='<div class="grp"><div class="grp-head">🧻 Bobina '+bw+' mm<span class="st">'+jobs.length+' chapas · '+fmt(gMetros)+' m · '+fmtTempo(gTempo)+'</span></div>'+cards+'</div>';
     });
-
-    let html = '';
-    Object.keys(grupos).forEach(donoId => {
-      const dono = mapaDono[donoId] || {nome:'(dono #' + donoId + ' não encontrado)', tipo:''};
-      const itens = grupos[donoId];
-      let totalDono = 0;
-
-      let linhas = '';
-      itens.forEach(e => {
-        const papel = mapaPapel[e.papel_id] || {nome:'(papel #' + e.papel_id + ' não encontrado)', gramatura:'?', funcao:''};
-        totalDono += Number(e.kg) || 0;
-        const icClass = papel.funcao === 'capa' ? 'capa' : (papel.funcao === 'miolo' ? 'miolo' : '');
-        const icEmoji = papel.funcao === 'capa' ? '🟫' : '🟩';
-        linhas +=
-          '<div class="stock-row">' +
-            '<div class="paper-ic ' + icClass + '">' + icEmoji + '</div>' +
-            '<div class="paper-info">' +
-              '<div class="paper-name">' + papel.nome + '</div>' +
-              '<div class="paper-meta">' + papel.gramatura + ' g/m² · ' + (papel.funcao||'—') +
-                '  <span style="opacity:.6">· dono #' + e.dono_id + ' · papel #' + e.papel_id + '</span>' +
-              '</div>' +
-            '</div>' +
-            '<div class="kg">' + fmtKg(e.kg) + ' <small>kg</small></div>' +
-          '</div>';
-      });
-
-      const tagClass = dono.tipo === 'propria' ? 'propria' : 'terceiro';
-      html +=
-        '<div class="owner-group">' +
-          '<div class="owner-head">' +
-            '<span class="owner-name">' + dono.nome + '</span>' +
-            (dono.tipo ? '<span class="tag ' + tagClass + '">' + dono.tipo + '</span>' : '') +
-            '<span class="owner-total">total ' + fmtKg(totalDono) + ' kg</span>' +
-          '</div>' +
-          linhas +
-        '</div>';
-    });
-
-    cont.innerHTML = html;
+    fila.innerHTML=html;
   }
+  // métricas
+  var tM=0,tK=0,tT=0,er=0;
+  prog.forEach(function(j){var r=calcJob(j);if(r){tM+=r.metros;tK+=r.kg;tT+=r.tempo;er+=r.erro;}});
+  S('m-chapas').textContent=prog.length;
+  S('m-metros').textContent=fmt(tM);
+  S('m-papel').textContent=fmt(tK);
+  S('m-tempo').textContent=fmtTempo(tT);
+  var me=S('m-erros');me.textContent=er;me.style.color=er>0?'var(--erro)':'var(--ok)';
+  renderEstoque(); renderResumo(tM,tK,tT);
+}
 
-  // ===== preencher os selects dos formulários =====
-  function preencherSelects(){
-    const selDono = document.getElementById('estDono');
-    const selPapel = document.getElementById('estPapel');
+function detalhe(jid){
+  var j=prog.find(x=>x.id===jid), r=calcJob(j); if(!r)return; var c=r.c, nO=c.cam.filter(x=>x.t==='O').length;
+  var html='<div class="panel"><div style="font-weight:600;margin-bottom:8px;">#'+j.id+' · '+c.cliente+' · '+c.cod+'</div>';
+  if(c.tipo==='caixa'&&c.vincos) html+='<div style="font-size:13px;margin-bottom:8px;">Vincos do cadastro (riscador): <b>'+c.vincos+'</b></div>';
+  else html+='<div style="font-size:13px;margin-bottom:8px;color:var(--txt2);">Chapa lisa (sem vinco)</div>';
+  html+='<div style="font-size:13px;color:var(--txt2);margin-bottom:6px;">Bobina '+j.bobina+' mm · '+r.cortes+' cortes · perda '+r.perda.toFixed(1)+'% · '+fmt(r.metros)+' m · '+fmtTempo(r.tempo)+'</div>';
+  html+='<div style="font-size:13px;color:var(--txt2);margin-bottom:6px;">Gramatura: capas + '+nO+' onda(s)×'+settings().fator+' + '+settings().cola+'g cola/onda = <b style="color:var(--txt)">'+fmt(gram(c))+' g/m²</b></div>';
+  html+='<table>'; c.cam.forEach(function(cm){html+='<tr><td>'+(cm.t==='O'?'Onda (×'+settings().fator+')':'Capa/Miolo')+'</td><td style="text-align:left;color:var(--txt2)">'+cm.papel+'</td><td style="font-weight:600;">'+fmt(pesoCamada(c,cm,j.folhas))+' kg</td></tr>';});
+  html+='</table></div>'; S('detalhe').innerHTML=html;
+}
 
-    selDono.innerHTML = '<option value="">— escolha o dono —</option>' +
-      donos.map(d => '<option value="' + d.id + '">' + d.nome + ' (' + d.tipo + ')</option>').join('');
+function requisitos(){var req={};prog.forEach(function(j){var c=chapaById(j.chapaId);if(c)c.cam.forEach(function(cm){req[cm.papel]=(req[cm.papel]||0)+pesoCamada(c,cm,j.folhas);});});return req;}
+function renderEstoque(){
+  var req=requisitos(), papeis={};
+  Object.keys(estoque).forEach(k=>papeis[k]=1); Object.keys(req).forEach(k=>papeis[k]=1);
+  var falta=0, html='<table><thead><tr><th>Papel</th><th>Tem</th><th>Precisa</th><th>Sobra/Falta</th></tr></thead><tbody>';
+  Object.keys(papeis).sort().forEach(function(p){
+    var tem=estoque[p]||0, prec=req[p]||0, dif=tem-prec, c=dif<0?'var(--erro)':'var(--ok)'; if(dif<0)falta++;
+    html+='<tr><td>'+p+'</td><td>'+fmt(tem)+' kg</td><td>'+fmt(prec)+' kg</td><td style="color:'+c+'">'+(dif<0?'⚠ ':'✓ +')+fmt(dif)+' kg</td></tr>';
+  });
+  html+='</tbody></table>';
+  html+= falta>0 ? '<div class="warnbox">⚠ '+falta+' papel(is) em falta — comprar antes de produzir.</div>'
+    : '<div style="color:var(--ok);font-size:12px;margin-top:10px;">✓ Tem papel pra toda a programação.</div>';
+  S('estoque').innerHTML=html;
+}
+function renderResumo(m,kg,t){
+  var capa=0,miolo=0,perdaKg=0;
+  prog.forEach(function(j){var r=calcJob(j);if(!r)return;var c=r.c;
+    c.cam.forEach(function(cm){if(cm.t==='O')miolo+=pesoCamada(c,cm,j.folhas);else capa+=pesoCamada(c,cm,j.folhas);});
+    var aprov=r.perda<100?(1-r.perda/100):1; if(aprov>0)perdaKg+=r.kg*(1/aprov-1);
+  });
+  S('resumo').innerHTML=
+    '<table><tr><td>Metros a rodar</td><td style="color:var(--txt);font-weight:600">'+fmt(m)+' m</td></tr>'+
+    '<tr><td>Tempo estimado</td><td style="color:var(--txt);font-weight:600">'+fmtTempo(t)+'</td></tr>'+
+    '<tr><td>Total em capas</td><td style="color:var(--txt);font-weight:600">'+fmt(capa)+' kg</td></tr>'+
+    '<tr><td>Total em miolo</td><td style="color:var(--txt);font-weight:600">'+fmt(miolo)+' kg</td></tr>'+
+    '<tr><td>Papel perdido (aprox)</td><td style="color:var(--warn);font-weight:600">'+fmt(perdaKg)+' kg</td></tr>'+
+    '<tr><td>Papel total</td><td style="color:var(--azul);font-weight:600">'+fmt(kg)+' kg</td></tr></table>'+
+    '<div style="font-size:11px;color:var(--txt2);margin-top:8px">🌀 Miolo entra com o fator da onda (×'+settings().fator+'). A perda vem de bobina que não fecha certo na largura.</div>';
+}
 
-    selPapel.innerHTML = '<option value="">— escolha o papel —</option>' +
-      papeis.map(p => '<option value="' + p.id + '">' + p.nome + ' · ' + p.gramatura + 'g · ' + p.funcao + '</option>').join('');
-  }
+function renderCadastro(){
+  var lista=S('cadList');
+  lista.innerHTML = chapas.length===0 ? '<div class="empty">Nenhuma chapa cadastrada.</div>' :
+    '<table><thead><tr><th>Cliente</th><th>Chapa</th><th>Gram.</th><th></th></tr></thead><tbody>'+
+    chapas.map(function(c){return '<tr><td style="font-weight:600">'+c.cliente+'</td>'+
+      '<td>'+c.cod+'<div style="font-size:11px;color:var(--txt2)">'+c.larg+'×'+c.comp+' · '+c.tipo+' · onda '+c.onda+(c.vincos?' · vincos '+c.vincos:'')+'</div></td>'+
+      '<td><span class="gram-tag">'+fmt(gram(c))+' g</span></td>'+
+      '<td><button class="del" onclick="removeChapa('+c.id+')">×</button></td></tr>';}).join('')+'</tbody></table>';
+  // popular select da programação
+  S('p-chapa').innerHTML='<option value="">— escolha a chapa —</option>'+
+    chapas.map(c=>'<option value="'+c.id+'">'+c.cliente+' · '+c.cod+' ('+c.larg+'×'+c.comp+')</option>').join('');
+}
 
-  // ===== salvar novo estoque =====
-  async function salvarEstoque(){
-    const dono_id = document.getElementById('estDono').value;
-    const papel_id = document.getElementById('estPapel').value;
-    const kg = document.getElementById('estKg').value;
+var composicaoAtual=[];
+function layersFor(onda){
+  if(onda.length>1) return [
+    {t:'C',label:'Capa topo',dp:'Capa CM1 100',dg:100},
+    {t:'O',label:'Onda 1',dp:'Miolo MM2 110',dg:110},
+    {t:'C',label:'Miolo (meio)',dp:'Miolo 110',dg:110},
+    {t:'O',label:'Onda 2',dp:'Miolo MM2 110',dg:110},
+    {t:'C',label:'Capa base',dp:'Capa CM1 100',dg:100}
+  ];
+  return [
+    {t:'C',label:'Capa externa',dp:'Capa CM1 90',dg:90},
+    {t:'O',label:'Miolo (onda)',dp:'Miolo MM2 110',dg:110},
+    {t:'C',label:'Capa interna',dp:'Capa CM1 90',dg:90}
+  ];
+}
+function renderComposicao(){
+  composicaoAtual=layersFor(S('c-onda').value);
+  S('composicao').innerHTML=composicaoAtual.map(function(l,i){
+    return '<div class="row"><div><label>'+l.label+' — papel</label><input id="lay-p-'+i+'" type="text" value="'+l.dp+'"></div>'+
+      '<div><label>g</label><input id="lay-g-'+i+'" type="number" value="'+l.dg+'" oninput="updateGram()"></div></div>';
+  }).join('');
+  updateGram();
+}
+function updateGram(){
+  if(!S('gramVal'))return; var s=settings(),total=0,nO=0;
+  composicaoAtual.forEach(function(l,i){ var g=val('lay-g-'+i); if(l.t==='O'){total+=g*s.fator;nO++;}else{total+=g;} });
+  S('gramVal').textContent=fmt(total+s.cola*nO)+' g/m²';
+}
+async function addChapa(){
+  var cli=S('c-cli').value.trim(), cod=S('c-cod').value.trim();
+  if(!cli){alert('Coloca o cliente.');return;}
+  if(val('c-larg')<=0||val('c-comp')<=0){alert('Coloca largura e comprimento.');return;}
+  var tipo=S('c-tipo').value, onda=S('c-onda').value;
+  var cam=composicaoAtual.map(function(l,i){return {t:l.t,papel:S('lay-p-'+i).value,g:val('lay-g-'+i)};});
+  var body={cliente:cli,cod:cod||'(sem código)',tipo:tipo,onda:onda,larg:val('c-larg'),comp:val('c-comp'),vincos:tipo==='caixa'?(S('c-vincos').value||null):null,cam:cam};
+  try{
+    await api('/chapas',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify(body)});
+    S('c-cli').value='';S('c-cod').value='';S('c-larg').value='';S('c-comp').value='';S('c-vincos').value='';
+    await carregar();
+  }catch(e){ alert('Erro ao salvar chapa: '+e.message); }
+}
+async function removeChapa(id){
+  if(!confirm('Apagar essa chapa do banco?'))return;
+  try{ await api('/programacao?chapa_id=eq.'+id,{method:'DELETE'}); await api('/chapas?id=eq.'+id,{method:'DELETE'}); await carregar(); }
+  catch(e){ alert('Erro ao apagar: '+e.message); }
+}
 
-    if(!dono_id){ return showMsg('msgEstoque','err','Escolhe o dono do papel.'); }
-    if(!papel_id){ return showMsg('msgEstoque','err','Escolhe o papel.'); }
-    if(kg === '' || Number(kg) <= 0){ return showMsg('msgEstoque','err','Coloca uma quantidade em kg.'); }
+async function addJob(){
+  var chapaId=parseInt(S('p-chapa').value), folhas=val('p-folhas'), bobina=val('p-bobina');
+  if(!chapaId){alert('Escolhe a chapa cadastrada.');return;}
+  if(folhas<=0){alert('Coloca a quantidade de folhas.');return;}
+  if(bobina<=0){alert('Coloca a bobina.');return;}
+  try{ await api('/programacao',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify({chapa_id:chapaId,folhas:folhas,bobina:bobina})}); S('p-folhas').value=''; await carregar(); }
+  catch(e){ alert('Erro ao adicionar: '+e.message); }
+}
+async function removeJob(id){ try{ await api('/programacao?id=eq.'+id,{method:'DELETE'}); await carregar(); }catch(e){ alert('Erro: '+e.message); } }
 
-    const btn = document.getElementById('btnEstoque');
-    btn.disabled = true; btn.textContent = 'Salvando…';
-    try{
-      const res = await fetch(REST + '/estoques', {
-        method:'POST',
-        headers: Object.assign({}, HEADERS, {'Prefer':'return=representation'}),
-        body: JSON.stringify({ dono_id: Number(dono_id), papel_id: Number(papel_id), kg: Number(kg) })
-      });
-      if(!res.ok){ throw new Error('HTTP ' + res.status + ' · ' + (await res.text())); }
-      showMsg('msgEstoque','ok','Estoque salvo! ✓');
-      document.getElementById('estKg').value = '';
-      await carregarTudo();
-    }catch(err){
-      console.error(err);
-      showMsg('msgEstoque','err','Não salvou: ' + err.message);
-    }finally{
-      btn.disabled = false; btn.textContent = 'Salvar estoque';
+async function importarCaixas(){
+  var camPad=function(){return [{t:'C',papel:'Capa CM1 100',g:100},{t:'O',papel:'Miolo MM2 110',g:110},{t:'C',papel:'Capa CM1 100',g:100}];};
+  var novas=[
+    {cliente:'TROPICAL',cod:'CX 12',onda:'B',larg:380,comp:950,vincos:'120 X 180 X 120',folhas:6000},
+    {cliente:'KININO',cod:'CX 07',onda:'B',larg:350,comp:900,vincos:'110 X 160 X 110',folhas:8000}
+  ];
+  try{
+    for(var i=0;i<novas.length;i++){ var n=novas[i];
+      var row=await api('/chapas',{method:'POST',headers:{'Prefer':'return=representation'},body:JSON.stringify({cliente:n.cliente,cod:n.cod,tipo:'caixa',onda:n.onda,larg:n.larg,comp:n.comp,vincos:n.vincos,cam:camPad()})});
+      await api('/programacao',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify({chapa_id:row[0].id,folhas:n.folhas,bobina:1400})});
     }
-  }
-
-  // ===== salvar novo papel =====
-  async function salvarPapel(){
-    const nome = document.getElementById('papNome').value.trim();
-    const gramatura = document.getElementById('papGram').value;
-    const funcao = document.getElementById('papFuncao').value;
-
-    if(!nome){ return showMsg('msgPapel','err','Coloca o nome do papel.'); }
-    if(gramatura === '' || Number(gramatura) <= 0){ return showMsg('msgPapel','err','Coloca a gramatura.'); }
-
-    const btn = document.getElementById('btnPapel');
-    btn.disabled = true; btn.textContent = 'Salvando…';
-    try{
-      const res = await fetch(REST + '/papeis', {
-        method:'POST',
-        headers: Object.assign({}, HEADERS, {'Prefer':'return=representation'}),
-        body: JSON.stringify({ nome: nome, gramatura: Number(gramatura), funcao: funcao })
-      });
-      if(!res.ok){ throw new Error('HTTP ' + res.status + ' · ' + (await res.text())); }
-      showMsg('msgPapel','ok','Papel "' + nome + '" salvo! ✓');
-      document.getElementById('papNome').value = '';
-      document.getElementById('papGram').value = '';
-      await carregarTudo();
-    }catch(err){
-      console.error(err);
-      showMsg('msgPapel','err','Não salvou: ' + err.message);
-    }finally{
-      btn.disabled = false; btn.textContent = 'Salvar papel';
-    }
-  }
-
-  // ===== start =====
-  carregarTudo();
+    await carregar();
+    alert(novas.length+' caixas importadas da cartonagem (salvas no banco, com nomenclatura e vincos).');
+  }catch(e){ alert('Erro ao importar: '+e.message); }
+}
+S('btn-import').onclick=importarCaixas;
+S('btn-print').onclick=function(){ showTab('prog'); S('printInfo').textContent='Programação da Onduladeira — '+new Date().toLocaleDateString('pt-BR'); window.print(); };
+S('btn-exemplos').onclick=carregarExemplos;
+S('btn-limpar').onclick=limparTudo;
+['sVel','sFator','sCola'].forEach(id=>S(id).addEventListener('input',function(){renderFila();updateGram();}));
+renderComposicao(); carregar();
 </script>
 </body>
 </html>
