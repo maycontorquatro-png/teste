@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Onduladeira — Operador</title>
+<style>
+  :root{ --azul:#009FE3; --bg:#0f1419; --card:#1a2129; --card2:#232c36; --linha:#2e3a45;
+    --txt:#e6edf3; --txt2:#9aa7b2; --ok:#3fb950; --warn:#d29922; --erro:#f85149; }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{ font-family:-apple-system,'Segoe UI',Roboto,sans-serif; background:var(--bg); color:var(--txt); padding:16px; line-height:1.45; max-width:840px; margin:0 auto; }
+  h1{ font-size:22px; color:var(--azul); }
+  .sub{ font-size:13px; color:var(--txt2); margin-bottom:14px; }
+  .bar{ display:flex; gap:10px; align-items:center; margin-bottom:14px; flex-wrap:wrap; }
+  button{ font-family:inherit; font-size:15px; padding:10px 16px; border-radius:9px; border:1px solid var(--linha); background:var(--card2); color:var(--txt); cursor:pointer; }
+  button:active{ transform:scale(0.98); }
+  button.prim{ background:var(--azul); border-color:var(--azul); color:#fff; font-weight:600; }
+  .metrics{ display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:8px; margin-bottom:16px; }
+  .metric{ background:var(--card2); border-radius:8px; padding:10px 12px; }
+  .metric .lbl{ font-size:12px; color:var(--txt2); }
+  .metric .val{ font-size:22px; font-weight:700; color:var(--txt); margin-top:2px; }
+  .onda-sec{ margin-bottom:22px; border:1px solid var(--linha); border-radius:12px; padding:12px 14px; background:rgba(255,255,255,0.015); }
+  .onda-head{ display:flex; align-items:center; gap:10px; font-size:17px; font-weight:700; color:var(--txt); padding:2px 0 10px; margin-bottom:8px; border-bottom:2px solid var(--azul); }
+  .onda-head .st{ margin-left:auto; font-size:13px; color:var(--txt2); font-weight:400; }
+  .grp{ margin-bottom:14px; margin-left:6px; }
+  .grp:last-child{ margin-bottom:0; }
+  .grp-head{ display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600; color:var(--azul); padding:6px 0; border-bottom:1px solid var(--linha); margin-bottom:8px; }
+  .grp-head .st{ margin-left:auto; font-size:12px; color:var(--txt2); font-weight:400; }
+  .card{ background:var(--card); border:1px solid var(--linha); border-radius:10px; padding:12px 14px; margin-bottom:9px; }
+  .card.done{ border-color:var(--ok); }
+  .card.falta{ border-color:var(--erro); }
+  .top{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .pill{ font-size:11px; padding:2px 9px; border-radius:11px; border:1px solid currentColor; }
+  .b-blue{ color:#58a6ff; } .b-teal{ color:#39c5cf; } .b-amber{ color:#d29922; }
+  .tag{ font-size:11px; padding:2px 9px; border-radius:11px; border:1px solid var(--linha); color:var(--txt2); }
+  .info{ display:flex; gap:14px; margin-top:7px; font-size:13px; color:var(--txt2); flex-wrap:wrap; align-items:center; }
+  .info b{ color:var(--txt); }
+  .vincos-line{ margin-top:6px; font-size:13px; color:var(--azul); }
+  .entrada{ display:flex; gap:8px; align-items:center; margin-top:11px; flex-wrap:wrap; padding-top:10px; border-top:1px dashed var(--linha); }
+  .entrada label{ font-size:14px; color:var(--txt2); }
+  .entrada input{ width:130px; font-family:inherit; font-size:19px; font-weight:700; padding:9px 12px; border-radius:9px; border:1px solid var(--linha); background:var(--bg); color:var(--txt); }
+  .status{ margin-top:9px; font-size:14px; font-weight:600; }
+  .empty{ color:var(--txt2); text-align:center; padding:30px 0; font-size:15px; }
+</style>
+</head>
+<body>
+<h1>Onduladeira — Operador</h1>
+<div class="sub">JP Embalagens · apontamento de produção · <span id="status" style="color:var(--txt2)">Conectando…</span> · <b style="color:var(--azul)">build 2</b></div>
+<div class="bar">
+  <button class="prim" id="refresh">🔄 Atualizar programação</button>
+  <span style="font-size:13px;color:var(--txt2)">Lance quanto de chapa saiu em cada item. Se faltar, o PCP é avisado.</span>
+</div>
+<div class="metrics">
+  <div class="metric"><div class="lbl">Chapas programadas</div><div class="val" id="m-chapas">0</div></div>
+  <div class="metric"><div class="lbl">Metros a rodar</div><div class="val" id="m-metros">0</div></div>
+  <div class="metric"><div class="lbl">Tempo total</div><div class="val" id="m-tempo">0</div></div>
+  <div class="metric"><div class="lbl">Pendentes</div><div class="val" id="m-pend" style="color:var(--warn)">0</div></div>
+</div>
+<div id="fila"></div>
+
+<script>
+function S(id){return document.getElementById(id);}
+function val(id){var v=parseFloat(S(id).value);return isNaN(v)?0:v;}
+function fmt(n){return Math.round(n).toLocaleString('pt-BR');}
+function fmtTempo(min){ if(!isFinite(min)||min<=0) return '0'; if(min<60) return fmt(min)+' min'; var h=Math.floor(min/60),m=Math.round(min%60); return h+'h'+(m<10?'0':'')+m; }
+
+var SB_URL='https://ajewezrzxkunsieqvksv.supabase.co/rest/v1';
+var SB_KEY='sb_publishable_EhoKnJsDHMLLVyxt_NHpAg_Mi3ZvcnE';
+var SB_H={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'};
+async function api(path,opts){
+  opts=opts||{}; opts.headers=Object.assign({},SB_H,opts.headers||{});
+  var r=await fetch(SB_URL+path,opts);
+  var txt=await r.text();
+  if(!r.ok){ throw new Error(r.status+' '+txt); }
+  return txt ? JSON.parse(txt) : null;
+}
+function setStatus(t,k){ var e=S('status'); if(!e)return; e.textContent=t; e.style.color=k==='ok'?'var(--ok)':k==='err'?'var(--erro)':'var(--txt2)'; }
+
+// mesmas configurações padrão da retaguarda
+var VEL=80, FATOR=1.35, COLA=15;
+function gram(c){ var total=0,nO=0; c.cam.forEach(function(x){ if(x.t==='O'){total+=x.g*FATOR;nO++;} else {total+=x.g;} }); return total+COLA*nO; }
+function pesoCamada(c,cam,folhas){ var f=cam.t==='O'?FATOR:1; return c.larg*c.comp*cam.g*f/100/1000/10000*folhas; }
+function pesoTotal(c,folhas){ var t=0; c.cam.forEach(function(x){t+=pesoCamada(c,x,folhas);}); return t; }
+function calcJob(j){
+  var c=chapaById(j.chapaId); if(!c) return null;
+  var cortes=c.larg>0?Math.floor(j.bobina/c.larg):0;
+  var metros=cortes>0?j.folhas*c.comp/cortes/1000:0;
+  var usado=cortes*c.larg;
+  var perda=j.bobina>0?(1-usado/j.bobina)*100:0;
+  var refile=Math.max(0,j.bobina-usado);
+  var tempo=VEL>0?metros/VEL:0;
+  var kg=pesoTotal(c,j.folhas);
+  return {c:c,cortes:cortes,metros:metros,perda:perda,refile:refile,tempo:tempo,kg:kg};
+}
+
+var chapas=[], prog=[];
+function chapaById(id){return chapas.find(function(c){return c.id===id;});}
+
+async function carregar(){
+  try{
+    setStatus('Conectando…');
+    var res=await Promise.all([ api('/chapas?select=*&order=id'), api('/programacao?select=*&order=id') ]);
+    chapas=res[0].map(function(r){return {id:r.id,cliente:r.cliente,cod:r.cod,tipo:r.tipo,onda:r.onda,larg:Number(r.larg),comp:Number(r.comp),vincos:r.vincos,cam:(r.cam||[]).map(function(x){return {t:x.t,papel:x.papel,g:Number(x.g)};})};});
+    prog=res[1].map(function(r){return {id:r.id,chapaId:r.chapa_id,folhas:Number(r.folhas),bobina:Number(r.bobina),produzido:(r.produzido!=null?Number(r.produzido):0),status:(r.status||'')};});
+    setStatus('Conectado ✓','ok');
+    render();
+  }catch(e){ setStatus('Erro de conexão: '+e.message,'err'); console.error(e); }
+}
+
+function cardHTML(j){
+  var r=calcJob(j); if(!r)return '';
+  var c=r.c;
+  var tag=c.tipo==='caixa'?'<span class="tag">caixa</span>':'<span class="tag">chapa</span>';
+  var cls=c.onda==='E'?'b-teal':(c.onda.indexOf('B')===0?'b-blue':'b-amber');
+  var pcor=r.perda>8?'var(--erro)':(r.perda>2?'var(--warn)':'var(--ok)');
+  var rcor=r.refile>0?'var(--warn)':'var(--ok)';
+  var vincosLine=(c.tipo==='caixa'&&c.vincos)?'<div class="vincos-line">📐 Vincos (riscador): <b>'+c.vincos+'</b></div>':'';
+  var prod=j.produzido||0, falt=j.folhas-prod, classe='', status='';
+  if(j.status==='ok'){ classe='done'; status='<div class="status" style="color:var(--ok)">✅ Pedido encerrado'+(prod>0?' — fez '+fmt(prod):'')+'</div>'; }
+  else if(prod>0){ if(falt>0){ classe='falta'; status='<div class="status" style="color:var(--erro)">⚠ Faltou '+fmt(falt)+' (fez '+fmt(prod)+' de '+fmt(j.folhas)+')</div>'; }
+    else { classe='done'; status='<div class="status" style="color:var(--ok)">✅ Concluído — '+fmt(prod)+'</div>'; } }
+  else { status='<div class="status" style="color:var(--txt2)">⏳ Pendente</div>'; }
+  return '<div class="card '+classe+'"><div class="top">'+
+    '<span style="font-weight:600">#'+j.id+'</span><span class="pill '+cls+'">'+c.cliente+'</span>'+
+    '<span style="font-size:13px;color:var(--txt2)">'+c.cod+'</span>'+tag+'<span class="pill '+cls+'">Onda '+c.onda+'</span>'+
+    '<span style="margin-left:auto;font-size:13px;font-weight:600">'+fmt(gram(c))+' g/m²</span></div>'+
+    '<div class="info"><span><b>'+c.larg+'×'+c.comp+'</b></span><span><b>'+fmt(j.folhas)+'</b> folhas</span>'+
+    '<span><b>'+r.cortes+'</b> cortes</span><span style="color:'+rcor+'">refile '+fmt(r.refile)+' mm</span>'+
+    '<span style="color:'+pcor+'">perda '+r.perda.toFixed(1)+'%</span><span>'+fmt(r.metros)+' m</span><span style="color:var(--txt)">'+fmt(r.kg)+' kg</span></div>'+
+    vincosLine+
+    '<div class="entrada"><label>Saiu (chapas):</label><input id="prod-'+j.id+'" type="number" value="'+(prod>0?prod:'')+'" placeholder="0"><button class="prim" onclick="salvar('+j.id+')">Salvar</button></div>'+
+    status+'</div>';
+}
+
+function render(){
+  var fila=S('fila');
+  if(prog.length===0){ fila.innerHTML='<div class="empty">Nenhuma chapa na programação ainda.</div>'; setMetrics(); return; }
+  var ondaMap={}; prog.forEach(function(j){ var c=chapaById(j.chapaId); var o=c?c.onda:'?'; (ondaMap[o]=ondaMap[o]||[]).push(j); });
+  var ondas=Object.keys(ondaMap).sort(function(a,b){ if(a.length!==b.length) return a.length-b.length; return a<b?-1:1; });
+  var html='';
+  ondas.forEach(function(onda){
+    var jobsO=ondaMap[onda]; var oM=0,oT=0;
+    jobsO.forEach(function(j){var r=calcJob(j); if(r){oM+=r.metros;oT+=r.tempo;}});
+    html+='<div class="onda-sec"><div class="onda-head">〰️ Onda '+onda+'<span class="st">'+jobsO.length+' chapas · '+fmt(oM)+' m · '+fmtTempo(oT)+'</span></div>';
+    var bobs=jobsO.map(function(j){return j.bobina;}).filter(function(v,i,a){return a.indexOf(v)===i;}).sort(function(a,b){return a-b;});
+    bobs.forEach(function(bw){
+      var jobs=jobsO.filter(function(j){return j.bobina===bw;}).sort(function(a,b){var ca=chapaById(a.chapaId),cb=chapaById(b.chapaId); if(!ca||!cb)return 0; return ca.larg-cb.larg;});
+      var gM=0,gT=0,cards='';
+      jobs.forEach(function(j){ var r=calcJob(j); if(r){gM+=r.metros;gT+=r.tempo;} cards+=cardHTML(j); });
+      html+='<div class="grp"><div class="grp-head">🧻 Bobina '+bw+' mm<span class="st">'+jobs.length+' chapas · '+fmt(gM)+' m · '+fmtTempo(gT)+'</span></div><div>'+cards+'</div></div>';
+    });
+    html+='</div>';
+  });
+  fila.innerHTML=html;
+  setMetrics();
+}
+
+function setMetrics(){
+  var tM=0,tT=0,pend=0;
+  prog.forEach(function(j){ var r=calcJob(j); if(r){tM+=r.metros;tT+=r.tempo;} if(j.status!=='ok' && (j.produzido||0)<=0) pend++; });
+  S('m-chapas').textContent=prog.length;
+  S('m-metros').textContent=fmt(tM);
+  S('m-tempo').textContent=fmtTempo(tT);
+  var mp=S('m-pend'); mp.textContent=pend; mp.style.color=pend>0?'var(--warn)':'var(--ok)';
+}
+
+async function salvar(jid){
+  var v=val('prod-'+jid);
+  if(v<0){ alert('Quantidade inválida.'); return; }
+  try{ await api('/programacao?id=eq.'+jid,{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({produzido:v})}); await carregar(); }
+  catch(e){ alert('Erro ao salvar: '+e.message); }
+}
+
+S('refresh').onclick=carregar;
+carregar();
+</script>
+</body>
+</html>
