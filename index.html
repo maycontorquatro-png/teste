@@ -27,6 +27,11 @@
   button:active{ transform:scale(0.97); }
   button.prim{ background:var(--azul); border-color:var(--azul); color:#fff; }
   .grp{ margin-bottom:14px; }
+  .onda-sec{ margin-bottom:22px; border:1px solid var(--linha); border-radius:12px; padding:12px 14px; background:rgba(255,255,255,0.015); }
+  .onda-head{ display:flex; align-items:center; gap:10px; font-size:17px; font-weight:700; color:var(--txt); padding:2px 0 10px; margin-bottom:8px; border-bottom:2px solid var(--azul); }
+  .onda-head .st{ margin-left:auto; font-size:13px; color:var(--txt2); font-weight:400; }
+  .onda-sec .grp{ margin-left:6px; }
+  .onda-sec .grp:last-child{ margin-bottom:0; }
   .grp-head{ display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600; color:var(--azul); padding:6px 0; border-bottom:1px solid var(--linha); margin-bottom:8px; }
   .grp-head .st{ margin-left:auto; font-size:12px; color:var(--txt2); font-weight:400; }
   .card{ background:var(--card); border:1px solid var(--linha); border-radius:9px; padding:11px 13px; margin-bottom:8px; cursor:pointer; }
@@ -38,6 +43,8 @@
   .info{ display:flex; gap:13px; margin-top:6px; font-size:12px; color:var(--txt2); flex-wrap:wrap; align-items:center; }
   .perda{ font-weight:600; }
   .del{ background:none; border:none; color:var(--erro); font-size:16px; font-weight:700; cursor:pointer; padding:0 4px; }
+  .mini{ font-family:inherit; font-size:11px; padding:5px 10px; border-radius:7px; border:1px solid var(--linha); background:var(--card2); color:var(--txt); cursor:pointer; }
+  .mini:active{ transform:scale(0.97); }
   .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px; }
   @media(max-width:560px){ .grid2{ grid-template-columns:1fr; } }
   .panel{ background:var(--card); border:1px solid var(--linha); border-radius:9px; padding:11px 13px; }
@@ -55,6 +62,14 @@
   .empty{ color:var(--txt2); font-size:13px; text-align:center; padding:14px 0; }
   .det{ margin-top:10px; }
   .gram-tag{ font-size:11px; font-weight:600; color:var(--azul); }
+  .card{ cursor:grab; }
+  .card:active{ cursor:grabbing; }
+  .lane{ min-height:12px; border-radius:8px; padding:1px; }
+  .lane-empty{ border:1px dashed var(--linha); border-radius:8px; padding:12px; text-align:center; color:var(--txt2); font-size:12px; }
+  #tip{ position:fixed; display:none; z-index:60; background:var(--card2); border:1px solid var(--azul); border-radius:9px; padding:10px 12px; font-size:12px; color:var(--txt); box-shadow:0 8px 24px rgba(0,0,0,.55); pointer-events:none; max-width:250px; }
+  .modal-bg{ position:fixed; inset:0; background:rgba(0,0,0,.6); display:none; align-items:center; justify-content:center; z-index:80; padding:16px; }
+  .modal-bg.show{ display:flex; }
+  .modal-card{ background:var(--card2); border:1px solid var(--azul); border-radius:12px; padding:16px; max-width:420px; width:100%; max-height:80vh; overflow:auto; }
   .print-only{ display:none; }
   @media print{
     .tabs,.set,.form,.btns,#pane-cad,#detalhe,.del,datalist{ display:none !important; }
@@ -64,21 +79,27 @@
     .metric{ background:#f2f2f2; border:1px solid #ccc; }
     .metric .lbl,.metric .val{ color:#000; }
     .grp-head{ color:#000; border-color:#999; } .grp-head .st{ color:#333; }
+    .onda-sec{ background:#fff !important; border:1px solid #999 !important; break-inside:avoid; }
+    .onda-head{ color:#000 !important; border-color:#000 !important; } .onda-head .st{ color:#333 !important; }
     .card,.panel{ background:#fff; border:1px solid #aaa; break-inside:avoid; }
     .card .top span,.info span,td,th,.panel h3,#resumo,.vincos-line,.vincos-line b{ color:#000 !important; }
     .pill,.tag{ color:#000 !important; border-color:#999 !important; background:#fff !important; }
     #pane-prog{ display:block !important; }
+    .lane-empty,.grp-vazia{ display:none !important; }
   }
 </style>
 </head>
 <body>
 <h1>Programação da Onduladeira</h1>
-<div class="sub">Sistema de teste · JP Embalagens / MTX · <span id="status" style="color:var(--txt2)">Conectando…</span> · <b style="color:var(--azul)">build 3</b></div>
+<div class="sub">Sistema de teste · JP Embalagens / MTX · <span id="status" style="color:var(--txt2)">Conectando…</span> · <b style="color:var(--azul)">build 14</b></div>
 <div class="print-only" id="printInfo"></div>
 
 <div class="tabs">
   <button class="tab active" id="tab-p" onclick="showTab('prog')">Programação manual</button>
   <button class="tab" id="tab-c" onclick="showTab('cad')">Cadastro de chapa</button>
+  <button class="tab" id="tab-e" onclick="showTab('est')">Estoque de papel</button>
+  <button class="tab" id="tab-m" onclick="showTab('emp')">Empréstimos</button>
+  <button class="tab" id="tab-f" onclick="showTab('forn')">Fornecedores</button>
 </div>
 
 <!-- ============ PROGRAMAÇÃO ============ -->
@@ -87,6 +108,7 @@
     <label>Velocidade (m/min) <input id="sVel" type="number" value="80"></label>
     <label>Fator onda <input id="sFator" type="number" step="0.01" value="1.35"></label>
     <label>Cola (g) <input id="sCola" type="number" value="15"></label>
+    <label>Margem refile/lado (mm) <input id="sMargem" type="number" value="15"></label>
   </div>
 
   <div class="metrics">
@@ -95,20 +117,21 @@
     <div class="metric"><div class="lbl">Papel total (kg)</div><div class="val" id="m-papel">0</div></div>
     <div class="metric"><div class="lbl">Tempo total</div><div class="val" id="m-tempo">0</div></div>
     <div class="metric"><div class="lbl">Erros de cálculo</div><div class="val" id="m-erros" style="color:var(--ok)">0</div></div>
+    <div class="metric"><div class="lbl">Não concluídos</div><div class="val" id="m-naoconc" style="color:var(--ok)">0</div></div>
   </div>
 
   <div class="form">
     <div style="font-weight:600;margin-bottom:9px;">➕ Adicionar à programação</div>
     <div class="row">
-      <div><label>Chapa cadastrada</label><select id="p-chapa"></select></div>
+      <div><label>Chapa cadastrada</label><select id="p-chapa" onchange="atualizaSugestao()"></select></div>
       <div><label>Quantidade de folhas</label><input id="p-folhas" type="number" placeholder="ex: 10000"></div>
     </div>
     <div class="row">
-      <div><label>Bobina que vai usar (mm)</label><input id="p-bobina" type="number" list="bobinas" value="1400"></div>
+      <div><label>Número de cortes</label><input id="p-cortes" type="number" value="2" oninput="atualizaSugestao()"></div>
       <div style="display:flex;align-items:flex-end;"><button class="prim" style="width:100%" onclick="addJob()">Adicionar na fila</button></div>
     </div>
-    <datalist id="bobinas"><option value="800"><option value="1000"><option value="1200"><option value="1400"></datalist>
-    <div style="font-size:11px;color:var(--txt2);">Bobinas comuns: 800 · 1000 · 1200 · 1400 mm. A fila fica agrupada por bobina pra facilitar o ajuste da máquina.</div>
+    <div id="sugestao" style="font-size:12px;color:var(--txt2);margin-top:2px"></div>
+    <div style="font-size:11px;color:var(--txt2);margin-top:4px;">Você diz quantos cortes; a bobina sai automática (com margem de refile de segurança). A fila agrupa por bobina.</div>
   </div>
 
   <div class="btns">
@@ -123,7 +146,7 @@
   <div id="detalhe" class="det"></div>
 
   <div class="grid2">
-    <div class="panel"><h3>Estoque de papel (exemplo)</h3><div id="estoque"></div></div>
+    <div class="panel"><h3>Saldo de papel · por dono (kg)</h3><div id="estoque"></div></div>
     <div class="panel"><h3>Resumo de produção</h3><div id="resumo" style="font-size:13px;color:var(--txt2);"></div></div>
   </div>
 </div>
@@ -144,6 +167,10 @@
       <div><label>Largura (mm)</label><input id="c-larg" type="number" placeholder="400"></div>
       <div><label>Comprimento (mm)</label><input id="c-comp" type="number" placeholder="1000"></div>
     </div>
+    <div class="row">
+      <div><label>Dono do papel (de onde sai)</label><input id="c-dono" type="text" list="dl-donos" placeholder="JP, DCX, Nogueira, DM…"></div>
+      <div style="display:flex;align-items:flex-end;font-size:11px;color:var(--txt2)">Caixas saem da JP · chapas saem do cliente</div>
+    </div>
     <div id="composicao"></div>
     <div id="gramPreview" style="font-size:13px;margin:2px 0 10px;">Gramatura total da chapa: <b class="gram-tag" id="gramVal">0 g/m²</b> <span style="color:var(--txt2);font-size:11px;">(capa = gramatura · onda = ×fator + cola)</span></div>
     <div class="row">
@@ -155,6 +182,100 @@
   <div class="panel"><h3>Chapas cadastradas</h3><div id="cadList"></div></div>
 </div>
 
+<!-- ============ ESTOQUE DE PAPEL ============ -->
+<div class="pane" id="pane-est">
+  <div class="form">
+    <div style="font-weight:600;margin-bottom:9px;">🧾 Dar entrada (nota fiscal)</div>
+    <div class="row">
+      <div><label>Nota fiscal</label><input id="nf-num" type="text" placeholder="ex: 12345"></div>
+      <div><label>Fornecedor</label><input id="nf-forn" type="text" placeholder="Nova Craft, Paulo Spell…"></div>
+    </div>
+    <div class="row">
+      <div><label>Dono / depósito</label><input id="nf-dono" type="text" list="dl-donos" placeholder="DCX, Nogueira, DM, JP…"></div>
+      <div></div>
+    </div>
+    <div style="border-top:1px solid var(--linha);margin:4px 0 9px;padding-top:9px;font-size:12px;color:var(--txt2)">Adicione as bobinas dessa nota (uma linha por formato/gramatura):</div>
+    <div class="row">
+      <div><label>Tipo</label><input id="li-tipo" type="text" list="dl-tipos" placeholder="Capa craft…"></div>
+      <div><label>Gramatura (g)</label><input id="li-gram" type="number" placeholder="110"></div>
+    </div>
+    <div class="row">
+      <div><label>Formato bobina (mm)</label><input id="li-larg" type="number" list="dl-formatos" placeholder="1200"></div>
+      <div><label>Peso (kg)</label><input id="li-kg" type="number" placeholder="5000"></div>
+    </div>
+    <button onclick="addLinha()">➕ Adicionar linha</button>
+    <div id="linhas" style="margin:10px 0"></div>
+    <button class="prim" onclick="darEntrada()">💾 Dar entrada (salvar nota)</button>
+    <div style="font-size:11px;color:var(--txt2);margin-top:8px;">Uma nota pode trazer vários formatos/gramaturas. Caixas vão pro estoque da JP; chapas pro estoque do cliente.</div>
+  </div>
+  <div class="panel"><h3>Papel em estoque (por dono)</h3><div id="estList"></div></div>
+</div>
+
+<!-- ============ EMPRÉSTIMOS ============ -->
+<div class="pane" id="pane-emp">
+  <div class="form">
+    <div style="font-weight:600;margin-bottom:9px;">🤝 Registrar empréstimo de bobina</div>
+    <div class="row">
+      <div><label>Peguei de (dono da bobina)</label><input id="em-de" type="text" list="dl-donos" placeholder="DCX, Nogueira…"></div>
+      <div><label>Quem pegou (devedor)</label><input id="em-quem" type="text" list="dl-donos" value="JP" placeholder="JP"></div>
+    </div>
+    <div class="row">
+      <div><label>Pra qual cliente/caixa usei</label><input id="em-para" type="text" placeholder="ex: KININO CX 03"></div>
+      <div></div>
+    </div>
+    <div class="row">
+      <div><label>Tipo</label><input id="em-tipo" type="text" list="dl-tipos" placeholder="Capa branca…"></div>
+      <div><label>Gramatura (g)</label><input id="em-gram" type="number" placeholder="110"></div>
+    </div>
+    <div class="row">
+      <div><label>Formato bobina (mm)</label><input id="em-larg" type="number" list="dl-formatos" placeholder="1200"></div>
+      <div><label>Quantidade</label><div style="display:flex;gap:6px"><input id="em-qtd" type="number" placeholder="200" style="flex:1"><select id="em-un" style="width:auto"><option value="kg">kg</option><option value="m">metros</option></select></div></div>
+    </div>
+    <button class="prim" onclick="addEmprestimo()">Registrar empréstimo</button>
+    <div style="font-size:11px;color:var(--txt2);margin-top:8px;">Use quando pegar a bobina de um cliente pra usar em outro. O "A repor" abaixo mostra o que devolver pra cada um.</div>
+  </div>
+  <div class="panel" style="margin-bottom:10px"><h3>📋 A repor (devolver pra cada cliente)</h3><div id="aRepor"></div></div>
+  <div class="panel"><h3>Histórico de empréstimos</h3><div id="empList"></div></div>
+</div>
+
+<div class="pane" id="pane-forn">
+  <div class="form">
+    <div style="font-weight:600;margin-bottom:9px;">🏭 Cadastrar fornecedor</div>
+    <div class="row">
+      <div><label>Nome do fornecedor</label><input id="fo-nome" type="text" list="dl-forn" placeholder="Polyspell, Nova Grafite, Souza Grafite…"></div>
+      <div><label>Contato (vendedor/telefone)</label><input id="fo-contato" type="text" placeholder="opcional"></div>
+    </div>
+    <div style="font-size:12px;color:var(--txt2);margin:10px 0 4px">Papéis que esse fornecedor vende:</div>
+    <div class="row">
+      <div><label>Tipo</label><input id="fo-tipo" type="text" list="dl-tipos" placeholder="Capa branca…"></div>
+      <div><label>Gramatura (g)</label><input id="fo-gram" type="number" placeholder="110"></div>
+    </div>
+    <div class="row">
+      <div><label>Formato bobina (mm)</label><input id="fo-larg" type="number" list="dl-formatos" placeholder="1400"></div>
+      <div></div>
+    </div>
+    <button class="mini" onclick="addLinhaForn()" style="margin-bottom:8px">+ adicionar papel</button>
+    <div id="fornLinhas" style="margin-bottom:10px"></div>
+    <button class="prim" onclick="addFornecedor()">Salvar fornecedor</button>
+    <div style="font-size:11px;color:var(--txt2);margin-top:8px;">Liste os papéis de cada fornecedor. Assim, ao gerar o pedido de compra, cada papel que faltar vai pro fornecedor certo.</div>
+  </div>
+  <div class="panel" style="margin-bottom:14px"><h3>🏭 Fornecedores cadastrados</h3><div id="fornList"></div></div>
+  <div class="form">
+    <div style="font-weight:600;margin-bottom:9px;">🛒 Pedido de compra (do que falta na programação)</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+      <button class="prim" onclick="gerarPedidoCompra()">Gerar pedido de compra</button>
+      <button onclick="imprimirPedido()">🖨️ Imprimir pedido</button>
+    </div>
+    <div id="pedido"><div style="font-size:12px;color:var(--txt2)">Programe a semana, depois clique em "Gerar pedido de compra" — ele lista o que falta, separado por fornecedor.</div></div>
+  </div>
+</div>
+
+<datalist id="dl-donos"></datalist>
+<datalist id="dl-forn"></datalist>
+<datalist id="dl-tipos"><option value="Capa branca"><option value="Capa craft"><option value="Miolo"></datalist>
+<datalist id="dl-formatos"><option value="800"><option value="1000"><option value="1200"><option value="1400"></datalist>
+<div id="tip"></div>
+<div id="emp-modal" class="modal-bg" onclick="fecharModal(event)"><div class="modal-card"><div id="emp-modal-body"></div></div></div>
 <script>
 function S(id){return document.getElementById(id);}
 function val(id){var v=parseFloat(S(id).value);return isNaN(v)?0:v;}
@@ -178,24 +299,44 @@ function setStatus(txt,kind){ var e=S('status'); if(!e)return; e.textContent=txt
 async function carregar(){
   try{
     setStatus('Conectando…','load');
-    var res=await Promise.all([ api('/chapas?select=*&order=id'), api('/programacao?select=*&order=id') ]);
-    chapas=res[0].map(function(r){return {id:r.id,cliente:r.cliente,cod:r.cod,tipo:r.tipo,onda:r.onda,larg:Number(r.larg),comp:Number(r.comp),vincos:r.vincos,cam:(r.cam||[]).map(function(x){return {t:x.t,papel:x.papel,g:Number(x.g)};})};});
-    prog=res[1].map(function(r){return {id:r.id,chapaId:r.chapa_id,folhas:Number(r.folhas),bobina:Number(r.bobina)};});
+    var res=await Promise.all([ api('/chapas?select=*&order=id'), api('/programacao?select=*&order=id'), api('/papeis_estoque?select=*&order=dono'), api('/emprestimos?select=*&order=data'), api('/fornecedores?select=*&order=nome').catch(function(){return [];}) ]);
+    chapas=res[0].map(function(r){return {id:r.id,cliente:r.cliente,cod:r.cod,tipo:r.tipo,dono:r.dono,onda:r.onda,larg:Number(r.larg),comp:Number(r.comp),vincos:r.vincos,cam:(r.cam||[]).map(function(x){return {t:x.t,papel:x.papel,g:Number(x.g)};})};});
+    prog=res[1].map(function(r){return {id:r.id,chapaId:r.chapa_id,folhas:Number(r.folhas),bobina:Number(r.bobina),produzido:(r.produzido!=null?Number(r.produzido):0),status:(r.status||'')};});
+    papeis=res[2].map(function(r){return {id:r.id,dono:r.dono,tipo:r.tipo,gram:Number(r.gramatura),largura:Number(r.largura),fornecedor:r.fornecedor,nf:r.nota_fiscal,kg:Number(r.kg)};});
+    emprestimos=res[3].map(function(r){return {id:r.id,de_quem:r.de_quem,para_dono:r.para_dono,tipo:r.tipo,gram:Number(r.gramatura),largura:Number(r.largura),kg:Number(r.kg),metros:(r.metros!=null?Number(r.metros):null),para_cliente:r.para_cliente,reposto:!!r.reposto,data:r.data};});
+    fornecedores=(res[4]||[]).map(function(r){return {id:r.id,nome:r.nome,contato:r.contato,papeis:(r.papeis||[]).map(function(p){return {tipo:p.tipo,gram:Number(p.gram),larg:Number(p.larg||0)};})};});
     setStatus('Conectado ✓ — salvando no banco','ok');
-    renderCadastro(); renderFila();
+    renderCadastro(); renderEstoquePapel(); renderEmprestimos(); renderFornecedores(); refreshDatalists(); renderFila(); atualizaSugestao();
   }catch(e){ setStatus('Erro de conexão: '+e.message,'err'); console.error(e); }
 }
 function chapasExemplo(){return [
-  {body:{cliente:'DCX',cod:'B190M100M100-E',tipo:'chapa',onda:'E',larg:350,comp:688,vincos:null,cam:[{t:'C',papel:'Capa Fosco 190',g:190},{t:'O',papel:'Miolo MM1 100',g:100},{t:'C',papel:'Capa CM1 100',g:100}]},job:{folhas:10000,bobina:800}},
-  {body:{cliente:'Nogueira',cod:'C90M110M90-B',tipo:'chapa',onda:'B',larg:306,comp:820,vincos:null,cam:[{t:'C',papel:'Capa CM1 90',g:90},{t:'O',papel:'Miolo MM2 110',g:110},{t:'C',papel:'Capa CM1 90',g:90}]},job:{folhas:8000,bobina:1200}},
-  {body:{cliente:'PACK E CIA',cod:'C90M100M100-E',tipo:'chapa',onda:'E',larg:450,comp:910,vincos:null,cam:[{t:'C',papel:'Capa CM1 90',g:90},{t:'O',papel:'Miolo MM1 100',g:100},{t:'C',papel:'Capa CM1 100',g:100}]},job:{folhas:5000,bobina:1200}},
-  {body:{cliente:'KININO',cod:'CX 03',tipo:'caixa',onda:'B',larg:425,comp:1185,vincos:'143 X 139 X 143',cam:[{t:'C',papel:'Capa CM1 100',g:100},{t:'O',papel:'Miolo MM2 110',g:110},{t:'C',papel:'Capa CM1 100',g:100}]},job:{folhas:10000,bobina:1400}},
-  {body:{cliente:'KININO',cod:'CX 01',tipo:'caixa',onda:'B',larg:306,comp:820,vincos:'87 X 133 X 87',cam:[{t:'C',papel:'Capa CM1 100',g:100},{t:'O',papel:'Miolo MM2 110',g:110},{t:'C',papel:'Capa CM1 100',g:100}]},job:{folhas:25000,bobina:1400}},
-  {body:{cliente:'KININO',cod:'M110x5-BB',tipo:'caixa',onda:'BB',larg:400,comp:1000,vincos:'130 X 205 X 130',cam:[{t:'C',papel:'Capa CM1 110',g:110},{t:'O',papel:'Miolo MM2 110',g:110},{t:'C',papel:'Miolo 110',g:110},{t:'O',papel:'Miolo MM2 110',g:110},{t:'C',papel:'Capa CM1 110',g:110}]},job:null}
+  {body:{cliente:'DCX',cod:'B190M110M120-E',tipo:'chapa',dono:'DCX',onda:'E',larg:350,comp:688,vincos:null,cam:[{t:'C',papel:'Capa branca',g:190},{t:'O',papel:'Miolo',g:110},{t:'C',papel:'Capa branca',g:120}]},job:{folhas:10000,bobina:800}},
+  {body:{cliente:'Nogueira',cod:'C90M110M90-B',tipo:'chapa',dono:'Nogueira',onda:'B',larg:306,comp:820,vincos:null,cam:[{t:'C',papel:'Capa craft',g:90},{t:'O',papel:'Miolo',g:110},{t:'C',papel:'Capa craft',g:90}]},job:{folhas:8000,bobina:1200}},
+  {body:{cliente:'PACK E CIA',cod:'C90M100M100-E',tipo:'chapa',dono:'PACK E CIA',onda:'E',larg:450,comp:910,vincos:null,cam:[{t:'C',papel:'Capa branca',g:90},{t:'O',papel:'Miolo',g:100},{t:'C',papel:'Capa branca',g:100}]},job:{folhas:5000,bobina:1200}},
+  {body:{cliente:'KININO',cod:'CX 03',tipo:'caixa',dono:'JP',onda:'B',larg:425,comp:1185,vincos:'143 X 139 X 143',cam:[{t:'C',papel:'Capa branca',g:100},{t:'O',papel:'Miolo',g:110},{t:'C',papel:'Capa branca',g:100}]},job:{folhas:10000,bobina:1400}},
+  {body:{cliente:'KININO',cod:'CX 01',tipo:'caixa',dono:'JP',onda:'B',larg:306,comp:820,vincos:'87 X 133 X 87',cam:[{t:'C',papel:'Capa branca',g:100},{t:'O',papel:'Miolo',g:110},{t:'C',papel:'Capa branca',g:100}]},job:{folhas:25000,bobina:1400}},
+  {body:{cliente:'KININO',cod:'M110x5-BB',tipo:'caixa',dono:'JP',onda:'BB',larg:400,comp:1000,vincos:'130 X 205 X 130',cam:[{t:'C',papel:'Capa branca',g:110},{t:'O',papel:'Miolo',g:110},{t:'C',papel:'Capa branca',g:110},{t:'O',papel:'Miolo',g:110},{t:'C',papel:'Capa branca',g:110}]},job:null}
+];}
+function estoqueExemplo(){return [
+  {dono:'DCX',tipo:'Capa branca',gramatura:190,largura:800,fornecedor:'Nova Craft',nota_fiscal:'NF 1001',kg:2000},
+  {dono:'DCX',tipo:'Miolo',gramatura:110,largura:800,fornecedor:'Nova Craft',nota_fiscal:'NF 1001',kg:1500},
+  {dono:'DCX',tipo:'Capa branca',gramatura:120,largura:800,fornecedor:'Nova Craft',nota_fiscal:'NF 1001',kg:1000},
+  {dono:'DCX',tipo:'Miolo',gramatura:110,largura:1400,fornecedor:'Nova Craft',nota_fiscal:'NF 1010',kg:1500},
+  {dono:'Nogueira',tipo:'Capa craft',gramatura:90,largura:1200,fornecedor:'Paulo Spell',nota_fiscal:'NF 2050',kg:1800},
+  {dono:'Nogueira',tipo:'Miolo',gramatura:110,largura:1200,fornecedor:'Paulo Spell',nota_fiscal:'NF 2050',kg:1200},
+  {dono:'PACK E CIA',tipo:'Capa branca',gramatura:90,largura:1200,fornecedor:null,nota_fiscal:null,kg:900},
+  {dono:'PACK E CIA',tipo:'Miolo',gramatura:100,largura:1200,fornecedor:null,nota_fiscal:null,kg:700},
+  {dono:'PACK E CIA',tipo:'Capa branca',gramatura:100,largura:1200,fornecedor:null,nota_fiscal:null,kg:800},
+  {dono:'JP',tipo:'Capa branca',gramatura:100,largura:1400,fornecedor:'Klabin',nota_fiscal:'NF 3300',kg:1500},
+  {dono:'JP',tipo:'Capa branca',gramatura:110,largura:1400,fornecedor:'Klabin',nota_fiscal:'NF 3300',kg:1000},
+  {dono:'JP',tipo:'Miolo',gramatura:110,largura:1400,fornecedor:'Klabin',nota_fiscal:'NF 3300',kg:1000}
 ];}
 async function carregarExemplos(){
-  if(!confirm('Isso grava as chapas de exemplo no banco. Continuar?'))return;
-  try{ var ex=chapasExemplo();
+  if(!confirm('Isso grava as chapas e o estoque de exemplo no banco. Continuar?'))return;
+  try{
+    var ep=estoqueExemplo();
+    for(var p=0;p<ep.length;p++){ await api('/papeis_estoque',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify(ep[p])}); }
+    var ex=chapasExemplo();
     for(var i=0;i<ex.length;i++){
       var row=await api('/chapas',{method:'POST',headers:{'Prefer':'return=representation'},body:JSON.stringify(ex[i].body)});
       if(ex[i].job){ await api('/programacao',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify({chapa_id:row[0].id,folhas:ex[i].job.folhas,bobina:ex[i].job.bobina})}); }
@@ -204,22 +345,183 @@ async function carregarExemplos(){
   }catch(e){ alert('Erro: '+e.message); }
 }
 async function limparTudo(){
-  if(!confirm('Apagar TODAS as chapas e a programação do banco? (só dados de teste)'))return;
-  try{ await api('/programacao?id=gt.0',{method:'DELETE'}); await api('/chapas?id=gt.0',{method:'DELETE'}); await carregar(); }
+  if(!confirm('Apagar TODAS as chapas, a programação, o estoque e os empréstimos do banco? (só dados de teste)'))return;
+  try{ await api('/programacao?id=gt.0',{method:'DELETE'}); await api('/chapas?id=gt.0',{method:'DELETE'}); await api('/papeis_estoque?id=gt.0',{method:'DELETE'}); await api('/emprestimos?id=gt.0',{method:'DELETE'}); await carregar(); }
   catch(e){ alert('Erro: '+e.message); }
 }
-function estoqueIni(){return {
-  'Capa Fosco 190':2500, 'Capa CM1 100':1500, 'Capa CM1 90':2000,
-  'Miolo MM1 100':3000, 'Miolo MM2 110':1200
-};}
-var chapas=[], prog=[], estoque=estoqueIni();
+var chapas=[], prog=[], papeis=[], emprestimos=[], fornecedores=[];
+var faltaAtual=[], candAtual=[];
 var PERDA_ALERTA=8;
+function donosList(){ var ds=['JP','DCX','Nogueira','DM']; papeis.forEach(function(p){if(p.dono&&ds.indexOf(p.dono)<0)ds.push(p.dono);}); chapas.forEach(function(c){if(c.dono&&ds.indexOf(c.dono)<0)ds.push(c.dono);}); return ds; }
+function refreshDatalists(){ if(S('dl-donos'))S('dl-donos').innerHTML=donosList().map(function(d){return '<option value="'+d+'">';}).join(''); if(S('dl-forn'))S('dl-forn').innerHTML=fornecedores.map(function(f){return '<option value="'+f.nome+'">';}).join(''); }
+function renderEstoquePapel(){
+  var lista=S('estList'); if(!lista)return;
+  if(papeis.length===0){ lista.innerHTML='<div class="empty">Nenhum papel no estoque. Lance acima.</div>'; refreshDatalists(); return; }
+  var byDono={}; papeis.forEach(function(p){ var d=p.dono||'(sem dono)'; (byDono[d]=byDono[d]||[]).push(p); });
+  var html=''; Object.keys(byDono).sort().forEach(function(d){
+    var rows=byDono[d].map(function(p){return '<tr><td>'+p.tipo+' '+fmt(p.gram)+' · <b>'+fmt(p.largura||0)+'mm</b>'+(p.fornecedor?' · '+p.fornecedor:'')+(p.nf?' · '+p.nf:'')+'</td><td>'+fmt(p.kg)+' kg</td><td><button class="del" onclick="removePapel('+p.id+')">×</button></td></tr>';}).join('');
+    html+='<div style="margin-bottom:12px"><div style="font-weight:600;color:var(--azul);font-size:13px;margin-bottom:4px">📦 '+d+'</div><table><tbody>'+rows+'</tbody></table></div>';
+  });
+  lista.innerHTML=html; refreshDatalists();
+}
+var entradaLinhas=[];
+function addLinha(){
+  var tipo=S('li-tipo').value.trim(), gram=val('li-gram'), larg=val('li-larg'), kg=val('li-kg');
+  if(!tipo){alert('Coloca o tipo da linha.');return;} if(gram<=0){alert('Coloca a gramatura.');return;}
+  if(larg<=0){alert('Coloca o formato da bobina.');return;} if(kg<=0){alert('Coloca o peso (kg).');return;}
+  entradaLinhas.push({tipo:tipo,gram:gram,larg:larg,kg:kg});
+  S('li-gram').value='';S('li-larg').value='';S('li-kg').value=''; renderLinhas();
+}
+function removeLinha(i){ entradaLinhas.splice(i,1); renderLinhas(); }
+function renderLinhas(){
+  var el=S('linhas'); if(!el)return;
+  if(entradaLinhas.length===0){ el.innerHTML='<div style="font-size:12px;color:var(--txt2)">Nenhuma linha adicionada ainda.</div>'; return; }
+  el.innerHTML='<table><tbody>'+entradaLinhas.map(function(l,i){return '<tr><td>'+l.tipo+' '+fmt(l.gram)+' · '+fmt(l.larg)+'mm</td><td>'+fmt(l.kg)+' kg</td><td><button class="del" onclick="removeLinha('+i+')">×</button></td></tr>';}).join('')+'</tbody></table>';
+}
+async function darEntrada(){
+  var nf=S('nf-num').value.trim(), forn=S('nf-forn').value.trim(), dono=S('nf-dono').value.trim();
+  if(!dono){alert('Coloca o dono/depósito.');return;}
+  if(entradaLinhas.length===0){alert('Adicione pelo menos uma linha (bobina).');return;}
+  try{
+    for(var i=0;i<entradaLinhas.length;i++){ var l=entradaLinhas[i];
+      await api('/papeis_estoque',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify({dono:dono,tipo:l.tipo,gramatura:l.gram,largura:l.larg,fornecedor:forn||null,kg:l.kg,nota_fiscal:nf||null})});
+    }
+    entradaLinhas=[]; S('nf-num').value='';S('nf-forn').value='';S('nf-dono').value='';S('li-tipo').value=''; renderLinhas();
+    await carregar();
+    alert('Entrada salva no estoque! ✅');
+  }catch(e){ alert('Erro ao dar entrada: '+e.message); }
+}
+async function removePapel(id){ if(!confirm('Tirar esse papel do estoque?'))return; try{ await api('/papeis_estoque?id=eq.'+id,{method:'DELETE'}); await carregar(); }catch(e){ alert('Erro: '+e.message); } }
+
+// ---- Fornecedores ----
+var fornLinhas=[];
+function addLinhaForn(){
+  var tipo=S('fo-tipo').value.trim(), gram=val('fo-gram'), larg=val('fo-larg');
+  if(!tipo){alert('Coloca o tipo do papel.');return;} if(gram<=0){alert('Coloca a gramatura.');return;}
+  if(larg<=0){alert('Coloca o formato da bobina (mm).');return;}
+  fornLinhas.push({tipo:tipo,gram:gram,larg:larg}); S('fo-gram').value='';S('fo-larg').value=''; renderLinhasForn();
+}
+function removeLinhaForn(i){ fornLinhas.splice(i,1); renderLinhasForn(); }
+function renderLinhasForn(){
+  var el=S('fornLinhas'); if(!el)return;
+  el.innerHTML = fornLinhas.length===0 ? '<div style="font-size:12px;color:var(--txt2)">Nenhum papel adicionado.</div>' :
+    '<table><tbody>'+fornLinhas.map(function(l,i){return '<tr><td>'+l.tipo+' '+fmt(l.gram)+'g · '+fmt(l.larg)+'mm</td><td><button class="del" onclick="removeLinhaForn('+i+')">×</button></td></tr>';}).join('')+'</tbody></table>';
+}
+async function addFornecedor(){
+  var nome=S('fo-nome').value.trim(), contato=S('fo-contato').value.trim();
+  if(!nome){alert('Coloca o nome do fornecedor.');return;}
+  if(fornLinhas.length===0){alert('Adicione pelo menos um papel que ele vende.');return;}
+  try{
+    await api('/fornecedores',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify({nome:nome,contato:contato||null,papeis:fornLinhas})});
+    fornLinhas=[]; S('fo-nome').value='';S('fo-contato').value='';S('fo-tipo').value='';S('fo-larg').value=''; renderLinhasForn();
+    await carregar(); alert('Fornecedor salvo! ✅');
+  }catch(e){ alert('Erro ao salvar fornecedor: '+e.message); }
+}
+async function removeFornecedor(id){ if(!confirm('Apagar esse fornecedor?'))return; try{ await api('/fornecedores?id=eq.'+id,{method:'DELETE'}); await carregar(); }catch(e){ alert('Erro: '+e.message); } }
+function renderFornecedores(){
+  var el=S('fornList'); if(!el)return;
+  el.innerHTML = fornecedores.length===0 ? '<div class="empty">Nenhum fornecedor cadastrado.</div>' :
+    fornecedores.map(function(f){
+      var ps=(f.papeis||[]).map(function(p){return p.tipo+' '+fmt(p.gram)+'g·'+fmt(p.larg||0)+'mm';}).join(' · ')||'(sem papéis)';
+      return '<div style="margin-bottom:10px;padding:9px;border:1px solid var(--linha);border-radius:8px">'+
+        '<div style="font-weight:600;color:var(--azul)">🏭 '+f.nome+(f.contato?' <span style="color:var(--txt2);font-weight:400;font-size:12px">· '+f.contato+'</span>':'')+
+        ' <button class="del" style="float:right" onclick="removeFornecedor('+f.id+')">×</button></div>'+
+        '<div style="font-size:12px;color:var(--txt2);margin-top:4px">'+ps+'</div></div>';
+    }).join('');
+}
+function ehJP(d){ d=(d||'').toLowerCase(); return d==='jp'||d==='própria'||d==='propria'; }
+function fornDoPapel(tipo,gram,larg){
+  for(var i=0;i<fornecedores.length;i++){ var f=fornecedores[i];
+    if((f.papeis||[]).some(function(p){return p.tipo===tipo && Number(p.gram)===Number(gram) && Number(p.larg)===Number(larg);})) return f.nome;
+  }
+  return null;
+}
+function gerarPedidoCompra(){
+  renderEstoque(); // garante faltaAtual atualizado
+  var out=S('pedido'); if(!out)return;
+  var jpFalta=faltaAtual.filter(function(f){return ehJP(f.dono);});
+  var terceiro=faltaAtual.filter(function(f){return !ehJP(f.dono);});
+  if(jpFalta.length===0){
+    out.innerHTML='<div style="color:var(--ok);font-size:13px">✓ Não falta papel da JP pra essa programação.</div>'+
+      (terceiro.length?'<div style="font-size:12px;color:var(--txt2);margin-top:6px">('+terceiro.length+' papel(is) de terceiros faltando — esses o cliente repõe.)</div>':'');
+    return;
+  }
+  var grupos={};
+  jpFalta.forEach(function(f){ var nome=fornDoPapel(f.tipo,f.gram,f.larg)||'⚠ Sem fornecedor definido'; (grupos[nome]=grupos[nome]||[]).push(f); });
+  var html='<div class="print-only">Pedido de compra · JP Embalagens · '+new Date().toLocaleDateString('pt-BR')+'</div>';
+  Object.keys(grupos).sort().forEach(function(nome){
+    var linhas=grupos[nome], totKg=0;
+    var fo=fornecedores.find(function(x){return x.nome===nome;}); var contato=(fo&&fo.contato)?' · '+fo.contato:'';
+    var rows=linhas.map(function(f){ totKg+=f.falta; return '<tr><td>'+f.tipo+' '+fmt(f.gram)+'g</td><td>'+fmt(f.larg)+' mm</td><td style="text-align:right;color:var(--txt)">'+fmt(f.falta)+' kg</td></tr>'; }).join('');
+    html+='<div class="panel" style="margin-bottom:12px"><h3>🛒 '+nome+contato+'</h3>'+
+      '<table><thead><tr><th>Papel</th><th>Formato</th><th style="text-align:right">Comprar</th></tr></thead><tbody>'+rows+
+      '<tr><td colspan="2" style="text-align:right;font-weight:600">Total</td><td style="text-align:right;font-weight:600;color:var(--azul)">'+fmt(totKg)+' kg</td></tr></tbody></table></div>';
+  });
+  if(terceiro.length) html+='<div style="font-size:12px;color:var(--txt2);margin-top:4px">Obs: '+terceiro.length+' papel(is) de terceiros também faltam, mas esses o cliente repõe (não entram no pedido de compra).</div>';
+  out.innerHTML=html;
+}
+function imprimirPedido(){
+  var c=S('pedido')?S('pedido').innerHTML:''; if(!c||c.indexOf('<table')<0){alert('Gere o pedido primeiro.');return;}
+  var w=window.open('','_blank'); if(!w){alert('O navegador bloqueou a janela de impressão. Libere os pop-ups e tente de novo.');return;}
+  w.document.write('<html><head><title>Pedido de compra — JP Embalagens</title><style>body{font-family:-apple-system,Arial,sans-serif;padding:24px;color:#000}h2{margin:0 0 4px}h3{margin:16px 0 6px;font-size:15px}table{width:100%;border-collapse:collapse;margin-bottom:14px}th,td{border:1px solid #999;padding:6px 9px;font-size:13px;text-align:left}.print-only{display:none}</style></head><body><h2>Pedido de compra — JP Embalagens</h2>'+c+'</body></html>');
+  w.document.close(); w.focus(); setTimeout(function(){w.print();},300);
+}
+async function addEmprestimo(){
+  var de=S('em-de').value.trim(), quem=S('em-quem').value.trim()||'JP', tipo=S('em-tipo').value.trim(), gram=val('em-gram'), larg=val('em-larg'), qtd=val('em-qtd'), un=S('em-un').value, para=S('em-para').value.trim();
+  if(!de){alert('De quem você pegou a bobina?');return;} if(!tipo){alert('Tipo do papel.');return;}
+  if(gram<=0){alert('Gramatura.');return;} if(larg<=0){alert('Formato da bobina.');return;} if(qtd<=0){alert('Quantidade.');return;}
+  var kg=qtd, metros=null;
+  if(un==='m'){ metros=qtd; kg=(larg/1000)*qtd*gram/1000; }
+  try{ await api('/emprestimos',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify({de_quem:de,para_dono:quem,tipo:tipo,gramatura:gram,largura:larg,kg:kg,metros:metros,para_cliente:para||null,reposto:false})});
+    S('em-gram').value='';S('em-larg').value='';S('em-qtd').value='';S('em-para').value=''; await carregar();
+    alert('Empréstimo registrado! 🤝');
+  }catch(e){ alert('Erro: '+e.message); }
+}
+function abrirEmprestimo(idx){
+  var f=faltaAtual[idx]; if(!f)return;
+  var key=f.tipo+'|'+f.gram+'|'+f.larg, eff=estoqueEfetivoPorDono();
+  candAtual=[]; Object.keys(eff).forEach(function(dn){ if(dn===f.dono)return; var disp=eff[dn][key]||0; if(disp>0)candAtual.push({dono:dn,kg:disp}); });
+  candAtual.sort(function(a,b){return b.kg-a.kg;});
+  var body='<div style="font-weight:600;margin-bottom:8px">🤝 Pegar emprestado</div>'+
+    '<div style="font-size:13px;color:var(--txt2);margin-bottom:12px">Falta <b style="color:var(--erro)">'+fmt(f.falta)+' kg</b> de <b>'+f.tipo+' '+f.gram+' · '+f.larg+'mm</b> pra <b>'+f.dono+'</b>.</div>';
+  if(candAtual.length===0){ body+='<div style="color:var(--warn);font-size:13px">Ninguém tem esse papel disponível nesse formato. Precisa comprar.</div>'; }
+  else{ body+='<div style="font-size:12px;color:var(--txt2);margin-bottom:6px">Quem tem disponível:</div>'+
+    candAtual.map(function(c,ci){return '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--linha)"><span><b>'+c.dono+'</b> tem '+fmt(c.kg)+' kg</span><button class="prim" style="font-size:12px;padding:5px 11px" onclick="confirmarEmprestimo('+idx+','+ci+')">Pegar '+fmt(f.falta)+' kg</button></div>';}).join(''); }
+  body+='<button style="margin-top:14px" onclick="fecharModal()">Fechar</button>';
+  S('emp-modal-body').innerHTML=body; S('emp-modal').classList.add('show');
+}
+async function confirmarEmprestimo(idx,ci){
+  var f=faltaAtual[idx], c=candAtual[ci]; if(!f||!c)return;
+  try{ await api('/emprestimos',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify({de_quem:c.dono,para_dono:f.dono,tipo:f.tipo,gramatura:f.gram,largura:f.larg,kg:f.falta,para_cliente:null,reposto:false})});
+    fecharModal(); await carregar();
+    alert('Pego emprestado de '+c.dono+' pra '+f.dono+'! Entrou no "A repor".');
+  }catch(e){ alert('Erro: '+e.message); }
+}
+function fecharModal(e){ if(e&&e.target&&e.target.id!=='emp-modal')return; S('emp-modal').classList.remove('show'); }
+async function marcarReposto(id,v){ try{ await api('/emprestimos?id=eq.'+id,{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({reposto:v})}); await carregar(); }catch(e){ alert('Erro: '+e.message); } }
+async function removeEmprestimo(id){ if(!confirm('Apagar esse registro de empréstimo?'))return; try{ await api('/emprestimos?id=eq.'+id,{method:'DELETE'}); await carregar(); }catch(e){ alert('Erro: '+e.message); } }
+function renderEmprestimos(){
+  var resumo={}; emprestimos.forEach(function(e){ if(e.reposto)return; var d=e.de_quem||'?'; var k=e.tipo+'|'+e.gram+'|'+e.largura; resumo[d]=resumo[d]||{}; resumo[d][k]=(resumo[d][k]||0)+e.kg; });
+  var aR=S('aRepor'); if(aR){ var donos=Object.keys(resumo).sort();
+    if(donos.length===0){ aR.innerHTML='<div style="color:var(--ok);font-size:13px">✓ Nada a repor no momento.</div>'; }
+    else{ var h=''; donos.forEach(function(d){ var rows=Object.keys(resumo[d]).sort().map(function(k){var p=k.split('|');return '<tr><td>'+p[0]+' '+p[1]+' · '+p[2]+'mm</td><td style="color:var(--warn);font-weight:600">'+fmt(resumo[d][k])+' kg</td></tr>';}).join(''); h+='<div style="margin-bottom:10px"><div style="font-weight:600;color:var(--azul);font-size:13px;margin-bottom:3px">↩️ Repor pra '+d+'</div><table><tbody>'+rows+'</tbody></table></div>'; }); aR.innerHTML=h; } }
+  var le=S('empList'); if(!le)return;
+  if(emprestimos.length===0){ le.innerHTML='<div class="empty">Nenhum empréstimo registrado.</div>'; refreshDatalists(); return; }
+  le.innerHTML='<table><tbody>'+emprestimos.map(function(e){
+    var dt=e.data?new Date(e.data).toLocaleDateString('pt-BR'):''; var q=fmt(e.kg)+' kg'+(e.metros?' ('+fmt(e.metros)+'m)':'');
+    return '<tr style="'+(e.reposto?'opacity:.5':'')+'"><td><b>'+(e.de_quem||'?')+'</b> → '+(e.para_dono||'?')+' · '+e.tipo+' '+fmt(e.gram)+' · '+fmt(e.largura)+'mm<div style="font-size:11px;color:var(--txt2)">'+q+(e.para_cliente?' · pra '+e.para_cliente:'')+' · '+dt+'</div></td>'+
+      '<td><label style="font-size:11px;color:var(--txt2)"><input type="checkbox" '+(e.reposto?'checked':'')+' onchange="marcarReposto('+e.id+',this.checked)"> reposto</label></td>'+
+      '<td><button class="del" onclick="removeEmprestimo('+e.id+')">×</button></td></tr>';
+  }).join('')+'</tbody></table>'; refreshDatalists();
+}
 
 function showTab(t){
-  S('pane-prog').classList.toggle('active',t==='prog');
-  S('pane-cad').classList.toggle('active',t==='cad');
+  ['prog','cad','est','emp','forn'].forEach(function(x){ S('pane-'+x).classList.toggle('active',t===x); });
   S('tab-p').classList.toggle('active',t==='prog');
   S('tab-c').classList.toggle('active',t==='cad');
+  S('tab-e').classList.toggle('active',t==='est');
+  S('tab-m').classList.toggle('active',t==='emp');
+  S('tab-f').classList.toggle('active',t==='forn');
 }
 function settings(){return {vel:val('sVel'),fator:val('sFator'),cola:val('sCola')};}
 function chapaById(id){return chapas.find(c=>c.id===id);}
@@ -233,55 +535,107 @@ function calcJob(j){
   var metros=cortes>0?j.folhas*c.comp/cortes/1000:0;
   var usado=cortes*c.larg;
   var perda=j.bobina>0?(1-usado/j.bobina)*100:0;
+  var refile=Math.max(0,j.bobina-usado);
   var tempo=s.vel>0?metros/s.vel:0;
   var kg=pesoTotal(c,j.folhas);
   var erro=(c.larg<=0||c.comp<=0||j.folhas<=0||cortes<=0)?1:0;
-  return {c,cortes,metros,perda,tempo,kg,erro};
+  return {c,cortes,metros,perda,refile,tempo,kg,erro};
 }
 
 function renderFila(){
   var fila=S('fila');
-  if(prog.length===0){ fila.innerHTML='<div class="empty">Fila vazia. Adicione chapas acima.</div>'; }
-  else{
-    var grupos={};
-    prog.forEach(function(j){ (grupos[j.bobina]=grupos[j.bobina]||[]).push(j); });
-    var bobinas=Object.keys(grupos).map(Number).sort((a,b)=>a-b);
-    var html='';
-    bobinas.forEach(function(bw){
-      var jobs=grupos[bw].slice().sort(function(a,b){var ca=chapaById(a.chapaId),cb=chapaById(b.chapaId); if(ca.onda!==cb.onda)return ca.onda<cb.onda?-1:1; return ca.larg-cb.larg;});
-      var gMetros=0,gTempo=0;
-      var cards='';
+  var ondaMap={};
+  prog.forEach(function(j){ var c=chapaById(j.chapaId); var o=c?c.onda:'?'; (ondaMap[o]=ondaMap[o]||[]).push(j); });
+  var ondas=Object.keys(ondaMap).sort(function(a,b){ if(a.length!==b.length) return a.length-b.length; return a<b?-1:1; });
+  var html='';
+  ondas.forEach(function(onda){
+    var jobsO=ondaMap[onda];
+    var oMetros=0,oTempo=0;
+    jobsO.forEach(function(j){var r=calcJob(j); if(r){oMetros+=r.metros;oTempo+=r.tempo;}});
+    html+='<div class="onda-sec"><div class="onda-head">〰️ Onda '+onda+'<span class="st">'+jobsO.length+' chapas · '+fmt(oMetros)+' m · '+fmtTempo(oTempo)+'</span></div>';
+    var bobs=jobsO.map(function(j){return j.bobina;}).filter(function(v,i,a){return a.indexOf(v)===i;}).sort(function(a,b){return a-b;});
+    bobs.forEach(function(bw){
+      var jobs=jobsO.filter(function(j){return j.bobina===bw;}).sort(function(a,b){var ca=chapaById(a.chapaId),cb=chapaById(b.chapaId); if(!ca||!cb)return 0; return ca.larg-cb.larg;});
+      var gMetros=0,gTempo=0,cards='';
       jobs.forEach(function(j){
         var r=calcJob(j); if(!r)return; gMetros+=r.metros; gTempo+=r.tempo;
         var c=r.c; var tag=c.tipo==='caixa'?'<span class="tag caixa">caixa</span>':'<span class="tag">chapa</span>';
         var cls=c.onda==='E'?'b-teal':(c.onda.indexOf('B')===0?'b-blue':'b-amber');
         var pcor=r.perda>PERDA_ALERTA?'var(--erro)':(r.perda>2?'var(--warn)':'var(--ok)');
+        var rcor=r.refile>0?'var(--warn)':'var(--ok)';
         var vincosLine=(c.tipo==='caixa'&&c.vincos)?'<div class="vincos-line" style="margin-top:5px;font-size:12px;color:var(--azul)">📐 Vincos (riscador): <b>'+c.vincos+'</b></div>':'';
-        cards+='<div class="card" onclick="detalhe('+j.id+')"><div class="top">'+
-          '<span style="font-weight:600;">#'+j.id+'</span><span class="pill '+cls+'">'+c.cliente+'</span>'+
+        var prod=j.produzido||0, prodLine='';
+        if(j.status==='ok'){
+          prodLine='<div style="margin-top:5px;font-size:12px;color:var(--ok)">✅ Pedido encerrado'+(prod>0?' — fez '+fmt(prod)+' de '+fmt(j.folhas):'')+'</div>';
+        } else if(prod>0){ var falt=j.folhas-prod;
+          if(falt>0){
+            prodLine='<div style="margin-top:5px;font-size:12px;color:var(--erro)">⚠ Não concluído — operador fez '+fmt(prod)+' de '+fmt(j.folhas)+' (faltou '+fmt(falt)+')</div>'+
+              '<div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">'+
+              '<button class="mini" onclick="event.stopPropagation();revisarJob('+j.id+')">✏️ Revisar</button>'+
+              '<button class="mini" onclick="event.stopPropagation();concluirJob('+j.id+')">✅ Concluir pedido</button>'+
+              '<button class="mini" onclick="event.stopPropagation();reprogramarJob('+j.id+')">🔄 Reprogramar falta</button>'+
+              '</div>';
+          } else {
+            prodLine='<div style="margin-top:5px;font-size:12px;color:var(--ok)">✅ Concluído — operador fez '+fmt(prod)+'</div>';
+          }
+        }
+        cards+='<div class="card" draggable="true" ondragstart="dragStart(event,'+j.id+')" onmouseenter="showTip(event,'+j.id+')" onmousemove="moveTip(event)" onmouseleave="hideTip()" onclick="detalhe('+j.id+')"><div class="top">'+
+          '<span style="font-weight:600;">⠿ #'+j.id+'</span><span class="pill '+cls+'">'+c.cliente+'</span>'+
           '<span style="font-size:13px;color:var(--txt2)">'+c.cod+'</span>'+tag+'<span class="pill '+cls+'">Onda '+c.onda+'</span>'+
           '<span style="margin-left:auto;font-size:13px;font-weight:600;">'+fmt(gram(c))+' g/m²</span></div>'+
           '<div class="info"><span>'+c.larg+'×'+c.comp+'</span><span>'+fmt(j.folhas)+' folhas</span>'+
-          '<span>'+r.cortes+' cortes</span><span class="perda" style="color:'+pcor+'">perda '+r.perda.toFixed(1)+'%</span>'+
+          '<span>'+r.cortes+' cortes</span><span style="color:'+rcor+'">refile '+fmt(r.refile)+' mm</span><span class="perda" style="color:'+pcor+'">perda '+r.perda.toFixed(1)+'%</span>'+
           '<span>'+fmt(r.metros)+' m</span><span style="color:var(--txt)">'+fmt(r.kg)+' kg</span>'+
           '<button class="del" onclick="event.stopPropagation();removeJob('+j.id+')">×</button></div>'+
-          vincosLine+'</div>';
+          vincosLine+prodLine+'</div>';
       });
-      html+='<div class="grp"><div class="grp-head">🧻 Bobina '+bw+' mm<span class="st">'+jobs.length+' chapas · '+fmt(gMetros)+' m · '+fmtTempo(gTempo)+'</span></div>'+cards+'</div>';
+      var sub=jobs.length+' chapas · '+fmt(gMetros)+' m · '+fmtTempo(gTempo);
+      html+='<div class="grp"><div class="grp-head">🧻 Bobina '+bw+' mm<span class="st">'+sub+'</span></div>'+
+        '<div class="lane" ondragover="allowDrop(event)" ondrop="dropJob(event,'+bw+',&quot;'+onda+'&quot;)">'+cards+'</div></div>';
     });
-    fila.innerHTML=html;
-  }
+    html+='</div>';
+  });
+  fila.innerHTML=html||'<div style="color:var(--txt2);text-align:center;padding:24px">Nada na programação ainda.</div>';
   // métricas
-  var tM=0,tK=0,tT=0,er=0;
-  prog.forEach(function(j){var r=calcJob(j);if(r){tM+=r.metros;tK+=r.kg;tT+=r.tempo;er+=r.erro;}});
+  var tM=0,tK=0,tT=0,er=0,naoConc=0;
+  prog.forEach(function(j){var r=calcJob(j);if(r){tM+=r.metros;tK+=r.kg;tT+=r.tempo;er+=r.erro;} if(j.status!=='ok'&&j.produzido>0&&j.produzido<j.folhas)naoConc++;});
   S('m-chapas').textContent=prog.length;
   S('m-metros').textContent=fmt(tM);
   S('m-papel').textContent=fmt(tK);
   S('m-tempo').textContent=fmtTempo(tT);
   var me=S('m-erros');me.textContent=er;me.style.color=er>0?'var(--erro)':'var(--ok)';
+  var mn=S('m-naoconc');if(mn){mn.textContent=naoConc;mn.style.color=naoConc>0?'var(--erro)':'var(--ok)';}
   renderEstoque(); renderResumo(tM,tK,tT);
 }
 
+function dragStart(e,id){ e.dataTransfer.setData('text/plain',id); e.dataTransfer.effectAllowed='move'; hideTip(); }
+function allowDrop(e){ e.preventDefault(); }
+async function dropJob(e,bobina,onda){ e.preventDefault(); var id=parseInt(e.dataTransfer.getData('text/plain')); await moverJob(id,bobina,onda); }
+async function moverJob(id,bobina,onda){
+  var j=prog.find(function(x){return x.id===id;}); if(!j)return;
+  var c=chapaById(j.chapaId);
+  if(c && onda && c.onda!==onda){ return; } // não muda de onda arrastando
+  if(j.bobina===bobina)return;
+  try{ await api('/programacao?id=eq.'+id,{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({bobina:bobina})}); await carregar(); }
+  catch(err){ alert('Erro ao mover: '+err.message); }
+}
+function labelCamada(cam,i){
+  if(cam.length>=5) return ['Capa topo','Onda 1','Miolo','Onda 2','Capa base'][i]||('Camada '+(i+1));
+  return ['Capa','Miolo','Contracapa'][i]||('Camada '+(i+1));
+}
+function showTip(e,id){
+  var j=prog.find(function(x){return x.id===id;}); if(!j)return; var r=calcJob(j); if(!r)return; var c=r.c;
+  var rows=c.cam.map(function(cm,i){ return '<div style="display:flex;justify-content:space-between;gap:20px"><span style="color:var(--txt2)">'+labelCamada(c.cam,i)+'</span><b>'+fmt(pesoCamada(c,cm,j.folhas))+' kg</b></div>'; }).join('');
+  var t=S('tip');
+  t.innerHTML='<div style="font-weight:600;margin-bottom:6px">'+c.cliente+' · '+c.cod+'</div>'+rows+
+    '<div style="border-top:1px solid var(--linha);margin:6px 0"></div>'+
+    '<div style="display:flex;justify-content:space-between;gap:20px"><span>Papel consumido</span><b style="color:var(--azul)">'+fmt(r.kg)+' kg</b></div>'+
+    '<div style="color:var(--txt2);font-size:11px;margin-top:5px">bobina '+j.bobina+' mm · '+r.cortes+' cortes · refile '+fmt(r.refile)+' mm · perda '+r.perda.toFixed(1)+'%</div>';
+  t.style.display='block'; moveTip(e);
+}
+function moveTip(e){ var t=S('tip'); if(t.style.display!=='block')return; var x=e.clientX+16,y=e.clientY+16,w=t.offsetWidth,h=t.offsetHeight;
+  if(x+w>window.innerWidth)x=e.clientX-w-16; if(y+h>window.innerHeight)y=e.clientY-h-16; t.style.left=x+'px'; t.style.top=y+'px'; }
+function hideTip(){ var t=S('tip'); if(t)t.style.display='none'; }
 function detalhe(jid){
   var j=prog.find(x=>x.id===jid), r=calcJob(j); if(!r)return; var c=r.c, nO=c.cam.filter(x=>x.t==='O').length;
   var html='<div class="panel"><div style="font-weight:600;margin-bottom:8px;">#'+j.id+' · '+c.cliente+' · '+c.cod+'</div>';
@@ -289,22 +643,48 @@ function detalhe(jid){
   else html+='<div style="font-size:13px;margin-bottom:8px;color:var(--txt2);">Chapa lisa (sem vinco)</div>';
   html+='<div style="font-size:13px;color:var(--txt2);margin-bottom:6px;">Bobina '+j.bobina+' mm · '+r.cortes+' cortes · perda '+r.perda.toFixed(1)+'% · '+fmt(r.metros)+' m · '+fmtTempo(r.tempo)+'</div>';
   html+='<div style="font-size:13px;color:var(--txt2);margin-bottom:6px;">Gramatura: capas + '+nO+' onda(s)×'+settings().fator+' + '+settings().cola+'g cola/onda = <b style="color:var(--txt)">'+fmt(gram(c))+' g/m²</b></div>';
-  html+='<table>'; c.cam.forEach(function(cm){html+='<tr><td>'+(cm.t==='O'?'Onda (×'+settings().fator+')':'Capa/Miolo')+'</td><td style="text-align:left;color:var(--txt2)">'+cm.papel+'</td><td style="font-weight:600;">'+fmt(pesoCamada(c,cm,j.folhas))+' kg</td></tr>';});
+  html+='<table>'; c.cam.forEach(function(cm){html+='<tr><td>'+(cm.t==='O'?'Onda (×'+settings().fator+')':'Capa/Miolo')+'</td><td style="text-align:left;color:var(--txt2)">'+cm.papel+' '+fmt(cm.g)+'</td><td style="font-weight:600;">'+fmt(pesoCamada(c,cm,j.folhas))+' kg</td></tr>';});
   html+='</table></div>'; S('detalhe').innerHTML=html;
 }
 
-function requisitos(){var req={};prog.forEach(function(j){var c=chapaById(j.chapaId);if(c)c.cam.forEach(function(cm){req[cm.papel]=(req[cm.papel]||0)+pesoCamada(c,cm,j.folhas);});});return req;}
-function renderEstoque(){
-  var req=requisitos(), papeis={};
-  Object.keys(estoque).forEach(k=>papeis[k]=1); Object.keys(req).forEach(k=>papeis[k]=1);
-  var falta=0, html='<table><thead><tr><th>Papel</th><th>Tem</th><th>Precisa</th><th>Sobra/Falta</th></tr></thead><tbody>';
-  Object.keys(papeis).sort().forEach(function(p){
-    var tem=estoque[p]||0, prec=req[p]||0, dif=tem-prec, c=dif<0?'var(--erro)':'var(--ok)'; if(dif<0)falta++;
-    html+='<tr><td>'+p+'</td><td>'+fmt(tem)+' kg</td><td>'+fmt(prec)+' kg</td><td style="color:'+c+'">'+(dif<0?'⚠ ':'✓ +')+fmt(dif)+' kg</td></tr>';
+function requisitosPorDono(){
+  var req={}; prog.forEach(function(j){ var c=chapaById(j.chapaId); if(!c)return; var d=c.dono||'(sem dono)';
+    c.cam.forEach(function(cm){ var k=cm.papel+'|'+cm.g+'|'+j.bobina; req[d]=req[d]||{}; req[d][k]=(req[d][k]||0)+pesoCamada(c,cm,j.folhas); }); });
+  return req;
+}
+function estoquePorDono(){
+  var st={}; papeis.forEach(function(p){ var d=p.dono||'(sem dono)'; var k=p.tipo+'|'+p.gram+'|'+(p.largura||0); st[d]=st[d]||{}; st[d][k]=(st[d][k]||0)+p.kg; });
+  return st;
+}
+function estoqueEfetivoPorDono(){
+  var st=estoquePorDono();
+  emprestimos.forEach(function(e){ if(e.reposto)return; var key=e.tipo+'|'+e.gram+'|'+e.largura;
+    var L=e.de_quem||'?', B=e.para_dono||'?';
+    st[L]=st[L]||{}; st[L][key]=(st[L][key]||0)-e.kg;
+    if(B&&B!=='?'){ st[B]=st[B]||{}; st[B][key]=(st[B][key]||0)+e.kg; }
   });
-  html+='</tbody></table>';
-  html+= falta>0 ? '<div class="warnbox">⚠ '+falta+' papel(is) em falta — comprar antes de produzir.</div>'
-    : '<div style="color:var(--ok);font-size:12px;margin-top:10px;">✓ Tem papel pra toda a programação.</div>';
+  return st;
+}
+function renderEstoque(){
+  var req=requisitosPorDono(), st=estoqueEfetivoPorDono(), donos={};
+  Object.keys(req).forEach(function(d){donos[d]=1;}); Object.keys(st).forEach(function(d){donos[d]=1;});
+  var donoList=Object.keys(donos).sort();
+  if(donoList.length===0){ S('estoque').innerHTML='<div class="empty">Lance papel na aba "Estoque de papel".</div>'; return; }
+  faltaAtual=[]; var falta=0, html='';
+  donoList.forEach(function(d){
+    var keys={}; if(req[d])Object.keys(req[d]).forEach(function(k){keys[k]=1;}); if(st[d])Object.keys(st[d]).forEach(function(k){keys[k]=1;});
+    var rows='';
+    Object.keys(keys).sort().forEach(function(k){
+      var parts=k.split('|'), nome=parts[0]+' '+parts[1]+' · '+parts[2]+'mm';
+      var tem=(st[d]&&st[d][k])||0, prec=(req[d]&&req[d][k])||0, dif=tem-prec, cor=dif<0?'var(--erro)':'var(--ok)';
+      var acao='';
+      if(dif<0){ falta++; var idx=faltaAtual.length; faltaAtual.push({dono:d,tipo:parts[0],gram:Number(parts[1]),larg:Number(parts[2]),falta:Math.round(-dif)}); acao='<button onclick="abrirEmprestimo('+idx+')" style="font-size:11px;padding:3px 7px">🤝 emprestado</button>'; }
+      rows+='<tr><td>'+nome+'</td><td>'+fmt(tem)+'</td><td>'+fmt(prec)+'</td><td style="color:'+cor+'">'+(dif<0?'⚠ ':'+')+fmt(dif)+'</td><td>'+acao+'</td></tr>';
+    });
+    html+='<div style="margin-bottom:10px"><div style="font-weight:600;color:var(--azul);font-size:13px;margin-bottom:3px">📦 '+d+'</div>'+
+      '<table><thead><tr><th>Papel</th><th>Tem</th><th>Prec.</th><th>Saldo</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  });
+  html+= falta>0?'<div class="warnbox">⚠ '+falta+' papel(is) faltando — use "🤝 emprestado", compre ou substitua.</div>':'<div style="color:var(--ok);font-size:12px;margin-top:6px">✓ Tem papel pra toda a programação.</div>';
   S('estoque').innerHTML=html;
 }
 function renderResumo(m,kg,t){
@@ -328,7 +708,7 @@ function renderCadastro(){
   lista.innerHTML = chapas.length===0 ? '<div class="empty">Nenhuma chapa cadastrada.</div>' :
     '<table><thead><tr><th>Cliente</th><th>Chapa</th><th>Gram.</th><th></th></tr></thead><tbody>'+
     chapas.map(function(c){return '<tr><td style="font-weight:600">'+c.cliente+'</td>'+
-      '<td>'+c.cod+'<div style="font-size:11px;color:var(--txt2)">'+c.larg+'×'+c.comp+' · '+c.tipo+' · onda '+c.onda+(c.vincos?' · vincos '+c.vincos:'')+'</div></td>'+
+      '<td>'+c.cod+'<div style="font-size:11px;color:var(--txt2)">'+c.larg+'×'+c.comp+' · '+c.tipo+' · onda '+c.onda+' · 📦 '+(c.dono||'?')+(c.vincos?' · vincos '+c.vincos:'')+'</div></td>'+
       '<td><span class="gram-tag">'+fmt(gram(c))+' g</span></td>'+
       '<td><button class="del" onclick="removeChapa('+c.id+')">×</button></td></tr>';}).join('')+'</tbody></table>';
   // popular select da programação
@@ -339,22 +719,22 @@ function renderCadastro(){
 var composicaoAtual=[];
 function layersFor(onda){
   if(onda.length>1) return [
-    {t:'C',label:'Capa topo',dp:'Capa CM1 100',dg:100},
-    {t:'O',label:'Onda 1',dp:'Miolo MM2 110',dg:110},
-    {t:'C',label:'Miolo (meio)',dp:'Miolo 110',dg:110},
-    {t:'O',label:'Onda 2',dp:'Miolo MM2 110',dg:110},
-    {t:'C',label:'Capa base',dp:'Capa CM1 100',dg:100}
+    {t:'C',label:'Capa topo',dp:'Capa branca',dg:110},
+    {t:'O',label:'Onda 1',dp:'Miolo',dg:110},
+    {t:'C',label:'Miolo (meio)',dp:'Capa branca',dg:110},
+    {t:'O',label:'Onda 2',dp:'Miolo',dg:110},
+    {t:'C',label:'Capa base',dp:'Capa branca',dg:110}
   ];
   return [
-    {t:'C',label:'Capa externa',dp:'Capa CM1 90',dg:90},
-    {t:'O',label:'Miolo (onda)',dp:'Miolo MM2 110',dg:110},
-    {t:'C',label:'Capa interna',dp:'Capa CM1 90',dg:90}
+    {t:'C',label:'Capa externa',dp:'Capa branca',dg:90},
+    {t:'O',label:'Miolo (onda)',dp:'Miolo',dg:110},
+    {t:'C',label:'Capa interna',dp:'Capa branca',dg:90}
   ];
 }
 function renderComposicao(){
   composicaoAtual=layersFor(S('c-onda').value);
   S('composicao').innerHTML=composicaoAtual.map(function(l,i){
-    return '<div class="row"><div><label>'+l.label+' — papel</label><input id="lay-p-'+i+'" type="text" value="'+l.dp+'"></div>'+
+    return '<div class="row"><div><label>'+l.label+' — papel</label><input id="lay-p-'+i+'" type="text" list="dl-tipos" value="'+l.dp+'"></div>'+
       '<div><label>g</label><input id="lay-g-'+i+'" type="number" value="'+l.dg+'" oninput="updateGram()"></div></div>';
   }).join('');
   updateGram();
@@ -368,12 +748,12 @@ async function addChapa(){
   var cli=S('c-cli').value.trim(), cod=S('c-cod').value.trim();
   if(!cli){alert('Coloca o cliente.');return;}
   if(val('c-larg')<=0||val('c-comp')<=0){alert('Coloca largura e comprimento.');return;}
-  var tipo=S('c-tipo').value, onda=S('c-onda').value;
+  var tipo=S('c-tipo').value, onda=S('c-onda').value, dono=S('c-dono').value.trim()||(tipo==='caixa'?'JP':'');
   var cam=composicaoAtual.map(function(l,i){return {t:l.t,papel:S('lay-p-'+i).value,g:val('lay-g-'+i)};});
-  var body={cliente:cli,cod:cod||'(sem código)',tipo:tipo,onda:onda,larg:val('c-larg'),comp:val('c-comp'),vincos:tipo==='caixa'?(S('c-vincos').value||null):null,cam:cam};
+  var body={cliente:cli,cod:cod||'(sem código)',tipo:tipo,dono:dono,onda:onda,larg:val('c-larg'),comp:val('c-comp'),vincos:tipo==='caixa'?(S('c-vincos').value||null):null,cam:cam};
   try{
     await api('/chapas',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify(body)});
-    S('c-cli').value='';S('c-cod').value='';S('c-larg').value='';S('c-comp').value='';S('c-vincos').value='';
+    S('c-cli').value='';S('c-cod').value='';S('c-larg').value='';S('c-comp').value='';S('c-vincos').value='';S('c-dono').value='';
     await carregar();
   }catch(e){ alert('Erro ao salvar chapa: '+e.message); }
 }
@@ -383,15 +763,57 @@ async function removeChapa(id){
   catch(e){ alert('Erro ao apagar: '+e.message); }
 }
 
+function formatosDoDono(dono){ var s={}; papeis.forEach(function(p){ if(p.dono===dono && p.kg>0 && p.largura>0) s[p.largura]=1; }); return Object.keys(s).map(Number).sort(function(a,b){return a-b;}); }
+var BOBINAS=[800,850,900,950,1000,1050,1100,1150,1200,1250,1300,1350,1400];
+function bobinaSugerida(c,cortes,margem){
+  var needed=cortes*c.larg, ideal=needed+2*margem, min=needed+20;
+  var best=BOBINAS[0], bd=Infinity;
+  BOBINAS.forEach(function(s){ var d=Math.abs(s-ideal); if(d<bd){bd=d;best=s;} });
+  if(best<min){ var up=BOBINAS.filter(function(s){return s>=min;}); best=up.length?up[0]:BOBINAS[BOBINAS.length-1]; }
+  return {bobina:best, emEstoque:formatosDoDono(c.dono).indexOf(best)!==-1};
+}
+function atualizaSugestao(){
+  var el=S('sugestao'); if(!el)return;
+  var id=parseInt(S('p-chapa').value), cortes=val('p-cortes'), margem=(S('sMargem')?val('sMargem'):15);
+  if(!id||cortes<=0){ el.innerHTML=''; return; }
+  var c=chapaById(id); if(!c){el.innerHTML='';return;}
+  var s=bobinaSugerida(c,cortes,margem), refLado=Math.round((s.bobina-cortes*c.larg)/2);
+  el.innerHTML='Bobina sugerida: <b style="color:var(--txt)">'+fmt(s.bobina)+' mm</b> · refile '+fmt(refLado)+' mm/lado · '+
+    (s.emEstoque?'<span style="color:var(--ok)">✓ tem essa bobina no estoque do '+(c.dono||'?')+'</span>'
+               :'<span style="color:var(--warn)">⚠ sem essa bobina no estoque (vai precisar comprar/emprestar)</span>');
+}
 async function addJob(){
-  var chapaId=parseInt(S('p-chapa').value), folhas=val('p-folhas'), bobina=val('p-bobina');
+  var chapaId=parseInt(S('p-chapa').value), folhas=val('p-folhas'), cortes=val('p-cortes');
   if(!chapaId){alert('Escolhe a chapa cadastrada.');return;}
   if(folhas<=0){alert('Coloca a quantidade de folhas.');return;}
-  if(bobina<=0){alert('Coloca a bobina.');return;}
-  try{ await api('/programacao',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify({chapa_id:chapaId,folhas:folhas,bobina:bobina})}); S('p-folhas').value=''; await carregar(); }
+  if(cortes<=0){alert('Coloca o número de cortes.');return;}
+  var c=chapaById(chapaId), s=bobinaSugerida(c,cortes,(S('sMargem')?val('sMargem'):15));
+  try{ await api('/programacao',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify({chapa_id:chapaId,folhas:folhas,bobina:s.bobina})}); S('p-folhas').value=''; await carregar(); }
   catch(e){ alert('Erro ao adicionar: '+e.message); }
 }
 async function removeJob(id){ try{ await api('/programacao?id=eq.'+id,{method:'DELETE'}); await carregar(); }catch(e){ alert('Erro: '+e.message); } }
+async function revisarJob(id){
+  var j=prog.find(function(x){return x.id===id;}); if(!j)return;
+  var v=prompt('Quantas chapas saíram de fato?', j.produzido||0); if(v===null)return;
+  v=parseFloat(v); if(isNaN(v)||v<0){alert('Valor inválido.');return;}
+  try{ await api('/programacao?id=eq.'+id,{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({produzido:v})}); await carregar(); }
+  catch(e){ alert('Erro: '+e.message); }
+}
+async function concluirJob(id){
+  if(!confirm('Encerrar este pedido mesmo faltando chapas? Ele deixa de aparecer como não concluído.'))return;
+  try{ await api('/programacao?id=eq.'+id,{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({status:'ok'})}); await carregar(); }
+  catch(e){ alert('Erro: '+e.message); }
+}
+async function reprogramarJob(id){
+  var j=prog.find(function(x){return x.id===id;}); if(!j)return;
+  var falta=j.folhas-(j.produzido||0); if(falta<=0){alert('Não tem falta pra reprogramar.');return;}
+  if(!confirm('Reprogramar '+fmt(falta)+' chapas que faltaram?\nVou criar um novo item na fila (mesma chapa/bobina) e encerrar este pedido.'))return;
+  try{
+    await api('/programacao',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify({chapa_id:j.chapaId,folhas:falta,bobina:j.bobina,produzido:0})});
+    await api('/programacao?id=eq.'+id,{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({status:'ok'})});
+    await carregar();
+  }catch(e){ alert('Erro: '+e.message); }
+}
 
 async function importarCaixas(){
   var camPad=function(){return [{t:'C',papel:'Capa CM1 100',g:100},{t:'O',papel:'Miolo MM2 110',g:110},{t:'C',papel:'Capa CM1 100',g:100}];};
@@ -412,8 +834,8 @@ S('btn-import').onclick=importarCaixas;
 S('btn-print').onclick=function(){ showTab('prog'); S('printInfo').textContent='Programação da Onduladeira — '+new Date().toLocaleDateString('pt-BR'); window.print(); };
 S('btn-exemplos').onclick=carregarExemplos;
 S('btn-limpar').onclick=limparTudo;
-['sVel','sFator','sCola'].forEach(id=>S(id).addEventListener('input',function(){renderFila();updateGram();}));
-renderComposicao(); carregar();
+['sVel','sFator','sCola','sMargem'].forEach(id=>S(id).addEventListener('input',function(){renderFila();updateGram();atualizaSugestao();}));
+renderComposicao(); renderLinhas(); carregar();
 </script>
 </body>
 </html>
